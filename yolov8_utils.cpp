@@ -177,7 +177,8 @@ void DrawPred(Mat& img, vector<OutputSeg> result, std::vector<std::string> class
 		top = result[i].box.y;
 		int color_num = i;
 		rectangle(img, result[i].box, color[result[i].id], 2, 8);
-		mask(result[i].box).setTo(color[result[i].id], result[i].boxMask);
+		if(result[i].boxMask.rows&& result[i].boxMask.cols>0)
+			mask(result[i].box).setTo(color[result[i].id], result[i].boxMask);
 		string label = classNames[result[i].id] + ":" + to_string(result[i].confidence);
 		int baseLine;
 		Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);

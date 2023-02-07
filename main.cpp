@@ -12,10 +12,9 @@ using namespace cv;
 using namespace dnn;
 
 template<typename _Tp>
-int yolov8(_Tp& cls)
+int yolov8(_Tp& cls,Mat& img,string& model_path)
 {
-	string img_path = "./images/bus.jpg";
-	string model_path = "./models/yolov8s-seg.onnx";
+
 	Net net;
 	if (cls.ReadModel(net, model_path, false)) {
 		cout << "read net ok!" << endl;
@@ -33,8 +32,8 @@ int yolov8(_Tp& cls)
 		color.push_back(Scalar(b, g, r));
 	}
 	vector<OutputSeg> result;
-	Mat img = imread(img_path);
-	clock_t t1, t2;
+
+
 	if (cls.Detect(img, net, result)) {
 		DrawPred(img, result, cls._className, color);
 	}
@@ -46,11 +45,8 @@ int yolov8(_Tp& cls)
 }
 
 template<typename _Tp>
-int yolov8_onnx(_Tp& cls)
+int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 {
-	string img_path = "./images/bus.jpg";
-	string model_path = "./models/yolov8s-seg.onnx";
-
 
 	if (cls.ReadModel( model_path, true)) {
 		cout << "read net ok!" << endl;
@@ -68,8 +64,6 @@ int yolov8_onnx(_Tp& cls)
 		color.push_back(Scalar(b, g, r));
 	}
 	vector<OutputSeg> result;
-	Mat img = imread(img_path);
-	clock_t t1, t2;
 	if (cls.OnnxDetect(img, result)) {
 		DrawPred(img, result, cls._className, color);
 	}
@@ -82,16 +76,21 @@ int yolov8_onnx(_Tp& cls)
 
 
 int main() {
+
+	string img_path = "./images/bus.jpg";
+	string seg_model_path = "./models/yolov8s-seg.onnx";
+	string detect_model_path = "./models/yolov8s.onnx";
+	Mat img = imread(img_path);
+
 	Yolov8 task_detect;
 	Yolov8Seg task_segment;
-
 	Yolov8Onnx task_detect_onnx;
 	Yolov8SegOnnx task_segment_onnx;
 
-	yolov8(task_detect);    //Opencv detect
-	yolov8(task_segment);   //opencv segment
-	yolov8_onnx(task_detect_onnx);  //onnxruntime detect
-	yolov8_onnx(task_segment_onnx); //onnxruntime segment
+	//yolov8(task_detect,img,detect_model_path);    //Opencv detect
+	//yolov8(task_segment,img,seg_model_path);   //opencv segment
+	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
+	yolov8_onnx(task_segment_onnx,img,seg_model_path); //onnxruntime segment
 
 	return 0;
 }

@@ -76,7 +76,7 @@ private:
 	Ort::Session* _OrtSession = nullptr;
 	Ort::MemoryInfo _OrtMemoryInfo;
 
-	std::shared_ptr<char> _inputName, _output_name0, _output_name1;
+	std::shared_ptr<char> _inputName, _output_name0;
 	std::vector<char*> _inputNodeNames; //输入节点名
 	std::vector<char*> _outputNodeNames;//输出节点名
 
@@ -88,7 +88,7 @@ private:
 	std::vector<int64_t> _inputTensorShape; //输入张量shape
 
 	std::vector<int64_t> _outputTensorShape;
-	std::vector<int64_t> _outputMaskTensorShape;
+
 public:
 	std::vector<std::string> _className = {
 		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",

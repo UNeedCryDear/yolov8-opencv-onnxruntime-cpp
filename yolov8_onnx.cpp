@@ -62,33 +62,16 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 		}
 		//init output
 		_outputNodesNum = _OrtSession->GetOutputCount();
-		if (_outputNodesNum != 2) {
-			cout << "This model has " << _outputNodesNum << "output, which is not a segmentation model.Please check your model name or path!" << endl;
-			return false;
-		}
 
 		_output_name0 = std::move(_OrtSession->GetOutputNameAllocated(0, allocator));
-		_output_name1 = std::move(_OrtSession->GetOutputNameAllocated(1, allocator));
-		Ort::TypeInfo type_info_output0(nullptr);
-		Ort::TypeInfo type_info_output1(nullptr);
-		if (strcmp(_output_name0.get(), _output_name1.get()) < 0)  //make sure "output0" is in front of  "output1"
-		{
-			type_info_output0 = _OrtSession->GetOutputTypeInfo(0);  //output0
-			type_info_output1 = _OrtSession->GetOutputTypeInfo(1);  //output1
-			_outputNodeNames.push_back(_output_name0.get());
-			_outputNodeNames.push_back(_output_name1.get());
-		}
-		else {
-			type_info_output0 = _OrtSession->GetOutputTypeInfo(1);  //output0
-			type_info_output1 = _OrtSession->GetOutputTypeInfo(0);  //output1
-			_outputNodeNames.push_back(_output_name1.get());
-			_outputNodeNames.push_back(_output_name0.get());
-		}
 
+		Ort::TypeInfo type_info_output0(nullptr);
+		type_info_output0 = _OrtSession->GetOutputTypeInfo(0);  //output0
+		_outputNodeNames.push_back(_output_name0.get());
 		auto tensor_info_output0 = type_info_output0.GetTensorTypeAndShapeInfo();
 		_outputNodeDataType = tensor_info_output0.GetElementType();
 		_outputTensorShape = tensor_info_output0.GetShape();
-		auto tensor_info_output1 = type_info_output1.GetTensorTypeAndShapeInfo();
+
 		//_outputMaskNodeDataType = tensor_info_output1.GetElementType(); //the same as output0
 		//_outputMaskTensorShape = tensor_info_output1.GetShape();
 		//if (_outputTensorShape[0] == -1)
@@ -196,15 +179,10 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 		_outputNodeNames.data(),
 		_outputNodeNames.size()
 	);
-
 	//post-process
-
-	int net_width = _className.size() + 4 + _segChannels;
+	int net_width = _className.size() + 4;
 	float* all_data = output_tensors[0].GetTensorMutableData<float>();
 	_outputTensorShape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
-	_outputMaskTensorShape = output_tensors[1].GetTensorTypeAndShapeInfo().GetShape();
-	vector<int> mask_protos_shape = { 1,(int)_outputMaskTensorShape[1],(int)_outputMaskTensorShape[2],(int)_outputMaskTensorShape[3] };
-	int mask_protos_length = VectorProduct(mask_protos_shape);
 	int64_t one_output_length = VectorProduct(_outputTensorShape) / _outputTensorShape[0];
 	for (int img_index = 0; img_index < srcImgs.size(); ++img_index) {
 		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data).t();  //[bs,116,8400]=>[bs,8400,116]
@@ -215,25 +193,25 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 		std::vector<float> confidences;//结果每个id对应置信度数组
 		std::vector<cv::Rect> boxes;//每个id矩形框
 		for (int r = 0; r < rows; ++r) {    //stride
-				cv::Mat scores(1, _className.size(), CV_32F, pdata +4);
-				Point classIdPoint;
-				double max_class_socre;
-				minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
-				max_class_socre = (float)max_class_socre;
-				if (max_class_socre >= _classThreshold) {
+			cv::Mat scores(1, _className.size(), CV_32F, pdata + 4);
+			Point classIdPoint;
+			double max_class_socre;
+			minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
+			max_class_socre = (float)max_class_socre;
+			if (max_class_socre >= _classThreshold) {
 
-					//rect [x,y,w,h]
-					float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
-					float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y
-					float w = pdata[2] / params[img_index][0];  //w
-					float h = pdata[3] / params[img_index][1];  //h
-					int left = MAX(int(x - 0.5 * w + 0.5), 0);
-					int top = MAX(int(y - 0.5 * h + 0.5), 0);
-					class_ids.push_back(classIdPoint.x);
-					confidences.push_back(max_class_socre );
-					boxes.push_back(Rect(left, top, int(w + 0.5), int(h + 0.5)));
-				}
-				pdata += net_width;//下一行
+				//rect [x,y,w,h]
+				float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
+				float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y
+				float w = pdata[2] / params[img_index][0];  //w
+				float h = pdata[3] / params[img_index][1];  //h
+				int left = MAX(int(x - 0.5 * w + 0.5), 0);
+				int top = MAX(int(y - 0.5 * h + 0.5), 0);
+				class_ids.push_back(classIdPoint.x);
+				confidences.push_back(max_class_socre);
+				boxes.push_back(Rect(left, top, int(w + 0.5), int(h + 0.5)));
+			}
+			pdata += net_width;//下一行
 		}
 
 		vector<int> nms_result;

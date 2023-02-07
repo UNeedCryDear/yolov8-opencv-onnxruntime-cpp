@@ -47,12 +47,12 @@ bool Yolov8::Detect(Mat& srcImg, Net& net, vector<OutputSeg>& output) {
 	//****************************************************************************************************************************************************/
 	net.setInput(blob);
 	std::vector<cv::Mat> net_output_img;
-	vector<string> output_layer_names{ "output0","output1" };
-	net.forward(net_output_img, output_layer_names); //get outputs
+
+	net.forward(net_output_img, net.getUnconnectedOutLayersNames()); //get outputs
 	std::vector<int> class_ids;// res-class_id
 	std::vector<float> confidences;// res-conf 
 	std::vector<cv::Rect> boxes;// res-box
-	int net_width = _className.size() + 4 + _segChannels;
+	int net_width = _className.size() + 4 ;
 	Mat output0=Mat( Size(net_output_img[0].size[2], net_output_img[0].size[1]), CV_32F, (float*)net_output_img[0].data).t();  //[bs,116,8400]=>[bs,8400,116]
 	int rows = output0.rows;
 	float* pdata = (float*)output0.data;
@@ -82,7 +82,6 @@ bool Yolov8::Detect(Mat& srcImg, Net& net, vector<OutputSeg>& output) {
 	std::vector<vector<float>> temp_mask_proposals;
 	Rect holeImgRect(0, 0, srcImg.cols, srcImg.rows);
 	for (int i = 0; i < nms_result.size(); ++i) {
-
 		int idx = nms_result[i];
 		OutputSeg result;
 		result.id = class_ids[idx];
