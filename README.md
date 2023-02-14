@@ -6,6 +6,8 @@
 **OpenCV>=4.7.0**<br>
 **OpenCV>=4.7.0**<br>
 **OpenCV>=4.7.0**<br>
+for opencv-dnn:</br>
+```yolo export model=yolov8n.pt format=onnx dynamic=False  opset=12```</br>
 **！！！！！！！！！！！！！！！**<br>
 **ONNXRuntime>=?**</br>
 
