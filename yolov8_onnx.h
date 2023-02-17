@@ -50,7 +50,7 @@ private:
 	const int _segWidth = 320;  //_segWidth=_netWidth/mask_ratio
 	const int _segHeight = 320;
 	const int _segChannels = 32;
-	
+
 #else
 	//const float _netAnchors[3][6] = { { 10,13, 16,30, 33,23 },{ 30,61, 62,45, 59,119 },{ 116,90, 156,198, 373,326 } };
 	const int _netWidth = 640;   //ONNX-net-input-width
@@ -75,8 +75,12 @@ private:
 	Ort::SessionOptions _OrtSessionOptions = Ort::SessionOptions();
 	Ort::Session* _OrtSession = nullptr;
 	Ort::MemoryInfo _OrtMemoryInfo;
-
+#if ORT_API_VERSION < ORT_OLD_VISON
+	char* _inputName, * _output_name0;
+#else
 	std::shared_ptr<char> _inputName, _output_name0;
+#endif
+
 	std::vector<char*> _inputNodeNames; //输入节点名
 	std::vector<char*> _outputNodeNames;//输出节点名
 

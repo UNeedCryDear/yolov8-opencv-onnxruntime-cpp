@@ -7,8 +7,10 @@ using namespace cv::dnn;
 bool Yolov8::ReadModel(Net& net, string& netPath, bool isCuda = false) {
 	try {
 		net = readNet(netPath);
+#if CV_VERSION_MAJOR==4 &&CV_VERSION_MINOR==7&&CV_VERSION_REVISION==0
 		net.enableWinograd(false);  //bug of opencv4.7.x in AVX only platform ,https://github.com/opencv/opencv/pull/23112 and https://github.com/opencv/opencv/issues/23080 
 		//net.enableWinograd(true);		//If your CPU supports AVX2, you can set it true to speed up
+#endif
 	}
 	catch (const std::exception&) {
 		return false;

@@ -1,5 +1,6 @@
 #include <iostream>
 #include<opencv2/opencv.hpp>
+
 #include<math.h>
 #include "yolov8.h"
 #include "yolov8_onnx.h"
@@ -48,7 +49,7 @@ template<typename _Tp>
 int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 {
 
-	if (cls.ReadModel( model_path, true)) {
+	if (cls.ReadModel( model_path, false)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -77,7 +78,7 @@ int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 
 int main() {
 
-	string img_path = "./images/bus.jpg";
+	string img_path = "./images/zidane.jpg";
 	string seg_model_path = "./models/yolov8s-seg.onnx";
 	string detect_model_path = "./models/yolov8s.onnx";
 	Mat img = imread(img_path);
@@ -87,9 +88,9 @@ int main() {
 	Yolov8Onnx task_detect_onnx;
 	Yolov8SegOnnx task_segment_onnx;
 
-	//yolov8(task_detect,img,detect_model_path);    //Opencv detect
-	//yolov8(task_segment,img,seg_model_path);   //opencv segment
-	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
+	yolov8(task_detect,img,detect_model_path);    //Opencv detect
+	yolov8(task_segment,img,seg_model_path);   //opencv segment
+	yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
 	yolov8_onnx(task_segment_onnx,img,seg_model_path); //onnxruntime segment
 
 	return 0;

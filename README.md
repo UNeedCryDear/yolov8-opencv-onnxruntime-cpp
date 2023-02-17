@@ -12,12 +12,13 @@ OpenCV>=4.7.0<br>
 
 ## requirements for onnxruntime （only yolo*_onnx.h/cpp）
 >opencv>=4.5.0 </br>
-ONNXRuntime>=? </br>
+ONNXRuntime>=1.9.0 </br>
 
 ## 更新说明：
 #### 2023.02.17更新<br>
-+ 0.opencv不支持动态推理，请将dymanic设置为False导出onnx,同时opset需要设置为12。
-+ 1.关于换行符，windows下面需要设置为CRLF，上传到github会自动切换成LF，windows下面切换一下即可<br>
++ 0.新增加onnxruntime旧版本API接口支持
++ 1.opencv不支持动态推理，请将dymanic设置为False导出onnx,同时opset需要设置为12。
++ 2.关于换行符，windows下面需要设置为CRLF，上传到github会自动切换成LF，windows下面切换一下即可<br>
 
 #### 2023.02.07 更新：</br>
 + yolov8使用opencv-dnn推理的话，目前只支持opencv4.7.0及其以上的版本，我暂时也没找到怎么修改适应opencv4.5.0的版本（￣へ￣），这个版本需求和onnxruntime无关，onnxruntime只需要4.5.0的版本,4.x的版本应该都可以用，只要能正确读取，有```cv::dnn::blobFromImages()```这个函数即可,如果真的没有这个函数，你自己将其源码抠出来用也是可以的，或者大佬们自己实现该函数功能。

@@ -13,7 +13,8 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 	{
 		std::vector<std::string> available_providers = GetAvailableProviders();
 		auto cuda_available = std::find(available_providers.begin(), available_providers.end(), "CUDAExecutionProvider");
-		OrtCUDAProviderOptions cudaOption;
+		
+
 		if (isCuda && (cuda_available == available_providers.end()))
 		{
 			std::cout << "Your ORT build without GPU. Change to CPU." << std::endl;
@@ -22,13 +23,20 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 		else if (isCuda && (cuda_available != available_providers.end()))
 		{
 			std::cout << "************* Infer model on GPU! *************" << std::endl;
+#if ORT_API_VERSION < ORT_OLD_VISON
+			OrtCUDAProviderOptions cudaOption;
+			cudaOption.device_id = cudaID;
+			_OrtSessionOptions.AppendExecutionProvider_CUDA(cudaOption);
+#else
 			OrtStatus* status = OrtSessionOptionsAppendExecutionProvider_CUDA(_OrtSessionOptions, cudaID);
+#endif
 		}
 		else
 		{
 			std::cout << "************* Infer model on CPU! *************" << std::endl;
 		}
 		//
+
 		_OrtSessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
 
 #ifdef _WIN32
@@ -41,9 +49,14 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 		Ort::AllocatorWithDefaultOptions allocator;
 		//init input
 		_inputNodesNum = _OrtSession->GetInputCount();
+#if ORT_API_VERSION < ORT_OLD_VISON
+		_inputName = _OrtSession->GetInputName(0, allocator);
+		_inputNodeNames.push_back(_inputName);
+#else
 		_inputName = std::move(_OrtSession->GetInputNameAllocated(0, allocator));
 		_inputNodeNames.push_back(_inputName.get());
-		cout << _inputNodeNames[0] << endl;
+#endif
+		//cout << _inputNodeNames[0] << endl;
 		Ort::TypeInfo inputTypeInfo = _OrtSession->GetInputTypeInfo(0);
 		auto input_tensor_info = inputTypeInfo.GetTensorTypeAndShapeInfo();
 		_inputNodeDataType = input_tensor_info.GetElementType();
@@ -62,12 +75,16 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 		}
 		//init output
 		_outputNodesNum = _OrtSession->GetOutputCount();
-
+#if ORT_API_VERSION < ORT_OLD_VISON
+		_output_name0 = _OrtSession->GetOutputName(0, allocator);
+		_outputNodeNames.push_back(_output_name0);
+#else
 		_output_name0 = std::move(_OrtSession->GetOutputNameAllocated(0, allocator));
-
+		_outputNodeNames.push_back(_output_name0.get());
+#endif
 		Ort::TypeInfo type_info_output0(nullptr);
 		type_info_output0 = _OrtSession->GetOutputTypeInfo(0);  //output0
-		_outputNodeNames.push_back(_output_name0.get());
+
 		auto tensor_info_output0 = type_info_output0.GetTensorTypeAndShapeInfo();
 		_outputNodeDataType = tensor_info_output0.GetElementType();
 		_outputTensorShape = tensor_info_output0.GetShape();

@@ -75,8 +75,13 @@ private:
 	Ort::SessionOptions _OrtSessionOptions = Ort::SessionOptions();
 	Ort::Session* _OrtSession = nullptr;
 	Ort::MemoryInfo _OrtMemoryInfo;
+#if ORT_API_VERSION < ORT_OLD_VISON
 
-	std::shared_ptr<char> _inputName, _output_name0, _output_name1;
+	char* _inputName, * _output_name0, * _output_name1;
+#else
+	std::shared_ptr<char> _inputName, _output_name0,_output_name1;
+#endif
+
 	std::vector<char*> _inputNodeNames; //输入节点名
 	std::vector<char*> _outputNodeNames;//输出节点名
 
