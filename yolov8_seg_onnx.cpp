@@ -169,7 +169,7 @@ int Yolov8SegOnnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vecto
 	Size input_size = Size(_netWidth, _netHeight);
 	for (int i = 0; i < srcImgs.size(); ++i) {
 		Mat temp_img = srcImgs[i];
-		Vec4d temp_param;
+		Vec4d temp_param = { 1,1,0,0 };
 		if (temp_img.size() != input_size) {
 			Mat borderImg;
 			LetterBox(temp_img, borderImg, temp_param, input_size, false, false, true, 32);
