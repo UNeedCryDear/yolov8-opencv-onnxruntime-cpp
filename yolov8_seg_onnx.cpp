@@ -8,9 +8,11 @@ bool Yolov8SegOnnx::ReadModel(const std::string& modelPath, bool isCuda, int cud
 	if (_batchSize < 1) _batchSize = 1;
 	try
 	{
+		if (!CheckModelPath(modelPath))
+			return false;
 		std::vector<std::string> available_providers = GetAvailableProviders();
 		auto cuda_available = std::find(available_providers.begin(), available_providers.end(), "CUDAExecutionProvider");
-	
+
 		if (isCuda && (cuda_available == available_providers.end()))
 		{
 			std::cout << "Your ORT build without GPU. Change to CPU." << std::endl;
@@ -51,7 +53,7 @@ bool Yolov8SegOnnx::ReadModel(const std::string& modelPath, bool isCuda, int cud
 		_inputName = std::move(_OrtSession->GetInputNameAllocated(0, allocator));
 		_inputNodeNames.push_back(_inputName.get());
 #endif
-	
+
 		Ort::TypeInfo inputTypeInfo = _OrtSession->GetInputTypeInfo(0);
 		auto input_tensor_info = inputTypeInfo.GetTensorTypeAndShapeInfo();
 		_inputNodeDataType = input_tensor_info.GetElementType();
@@ -100,7 +102,7 @@ bool Yolov8SegOnnx::ReadModel(const std::string& modelPath, bool isCuda, int cud
 			_outputNodeNames.push_back(_output_name0.get());
 			_outputNodeNames.push_back(_output_name1.get());
 #endif
-		
+
 		}
 		else {
 			type_info_output0 = _OrtSession->GetOutputTypeInfo(1);  //output0
@@ -226,14 +228,13 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 	);
 
 	//post-process
-
-	int net_width = _className.size() + 4 + _segChannels;
 	float* all_data = output_tensors[0].GetTensorMutableData<float>();
 	_outputTensorShape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
 	_outputMaskTensorShape = output_tensors[1].GetTensorTypeAndShapeInfo().GetShape();
 	vector<int> mask_protos_shape = { 1,(int)_outputMaskTensorShape[1],(int)_outputMaskTensorShape[2],(int)_outputMaskTensorShape[3] };
 	int mask_protos_length = VectorProduct(mask_protos_shape);
 	int64_t one_output_length = VectorProduct(_outputTensorShape) / _outputTensorShape[0];
+	int net_width = (int)_outputTensorShape[1];
 	for (int img_index = 0; img_index < srcImgs.size(); ++img_index) {
 		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data).t();  //[bs,116,8400]=>[bs,8400,116]
 		all_data += one_output_length;
@@ -244,26 +245,26 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 		std::vector<cv::Rect> boxes;//每个id矩形框
 		std::vector<vector<float>> picked_proposals;  //output0[:,:, 5 + _className.size():net_width]===> for mask
 		for (int r = 0; r < rows; ++r) {    //stride
-				cv::Mat scores(1, _className.size(), CV_32F, pdata +4);
-				Point classIdPoint;
-				double max_class_socre;
-				minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
-				max_class_socre = (float)max_class_socre;
-				if (max_class_socre >= _classThreshold) {
-					vector<float> temp_proto(pdata + 4 + _className.size(), pdata + net_width);
-					picked_proposals.push_back(temp_proto);
-					//rect [x,y,w,h]
-					float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
-					float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y
-					float w = pdata[2] / params[img_index][0];  //w
-					float h = pdata[3] / params[img_index][1];  //h
-					int left = MAX(int(x - 0.5 * w + 0.5), 0);
-					int top = MAX(int(y - 0.5 * h + 0.5), 0);
-					class_ids.push_back(classIdPoint.x);
-					confidences.push_back(max_class_socre );
-					boxes.push_back(Rect(left, top, int(w + 0.5), int(h + 0.5)));
-				}
-				pdata += net_width;//下一行
+			cv::Mat scores(1, _className.size(), CV_32F, pdata + 4);
+			Point classIdPoint;
+			double max_class_socre;
+			minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
+			max_class_socre = (float)max_class_socre;
+			if (max_class_socre >= _classThreshold) {
+				vector<float> temp_proto(pdata + 4 + _className.size(), pdata + net_width);
+				picked_proposals.push_back(temp_proto);
+				//rect [x,y,w,h]
+				float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
+				float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y
+				float w = pdata[2] / params[img_index][0];  //w
+				float h = pdata[3] / params[img_index][1];  //h
+				int left = MAX(int(x - 0.5 * w + 0.5), 0);
+				int top = MAX(int(y - 0.5 * h + 0.5), 0);
+				class_ids.push_back(classIdPoint.x);
+				confidences.push_back(max_class_socre);
+				boxes.push_back(Rect(left, top, int(w + 0.5), int(h + 0.5)));
+			}
+			pdata += net_width;//下一行
 		}
 
 		vector<int> nms_result;
@@ -284,6 +285,9 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 		MaskParams mask_params;
 		mask_params.params = params[img_index];
 		mask_params.srcImgShape = srcImgs[img_index].size();
+		mask_params.netHeight = _netHeight;
+		mask_params.netWidth = _netWidth;
+		mask_params.maskThreshold = _maskThreshold;
 		Mat mask_protos = Mat(mask_protos_shape, CV_32F, output_tensors[1].GetTensorMutableData<float>() + img_index * mask_protos_length);
 		for (int i = 0; i < temp_mask_proposals.size(); ++i) {
 			GetMask2(Mat(temp_mask_proposals[i]).t(), mask_protos, temp_output[i], mask_params);
@@ -292,10 +296,11 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 		//******************** ****************
 		// 老版本的方案，如果上面在开启我注释的部分之后还一直报错，建议使用这个。
 		// If the GetMask2() still reports errors , it is recommended to use GetMask().
-		// Mat mask_proposals;
-		//for (int i = 0; i < temp_mask_proposals.size(); ++i)
+		//Mat mask_proposals;
+		//for (int i = 0; i < temp_mask_proposals.size(); ++i) {
 		//	mask_proposals.push_back(Mat(temp_mask_proposals[i]).t());
-		//GetMask(mask_proposals, mask_protos, output, mask_params);
+		//}
+		//GetMask(mask_proposals, mask_protos, temp_output, mask_params);
 		//*****************************************************/
 		output.push_back(temp_output);
 

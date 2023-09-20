@@ -9,12 +9,19 @@ OpenCV>=4.7.0<br>
 
 2. export for opencv-dnn:</br>
 > ```yolo export model=path/to/model.pt format=onnx dynamic=False  opset=12```</br>
+> + Note: When exporting to opencv, it is best to set opset to 12
 
 ## requirements for onnxruntime （only yolo*_onnx.h/cpp）
 >opencv>=4.5.0 </br>
 ONNXRuntime>=1.9.0 </br>
 
 ## 更新说明：
+#### 2023.09.20更新<br>
++ 0.新增模型路径检查，部分issue查了半天，发现模型路径不对。
++ 1.计算mask部分bug修复，此前如果输入大小非640的话，需要同时设置头文件和结构体才能完成检测，但是大部分人只修改了一个地方，目前优化这部分内容，只需要修头文件中的定义即可。另外将segHeight和segWidth设置为从网络输出中读取，这样如果mask-ratio不是4倍的话，可以不需要修改这两个参数值。
++ 2.修复```GetMask2()```中可能导致越界的问题。<br>
+
+
 #### 2023.02.17更新<br>
 + 0.新增加onnxruntime旧版本API接口支持
 + 1.opencv不支持动态推理，请将dymanic设置为False导出onnx,同时opset需要设置为12。

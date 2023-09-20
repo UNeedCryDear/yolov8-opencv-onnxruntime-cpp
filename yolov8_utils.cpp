@@ -10,7 +10,15 @@ bool CheckParams(int netHeight, int netWidth, const int* netStride, int strideSi
 	}
 	return true;
 }
-
+bool CheckModelPath(std::string modelPath) {
+	if (0 != _access(modelPath.c_str(), 0)) {
+		cout << "Model path does not exist,  please check " << modelPath << endl;
+		return false;
+	}
+	else
+		return true;
+	
+}
 void LetterBox(const cv::Mat& image, cv::Mat& outImage, cv::Vec4d& params, const cv::Size& newShape,
 	bool autoShape, bool scaleFill, bool scaleUp, int stride, const cv::Scalar& color)
 {
@@ -76,11 +84,11 @@ void LetterBox(const cv::Mat& image, cv::Mat& outImage, cv::Vec4d& params, const
 void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vector<OutputSeg>& output, const MaskParams& maskParams) {
 	//cout << maskProtos.size << endl;
 
-	int seg_channels = maskParams.segChannels;
 	int net_width = maskParams.netWidth;
-	int seg_width = maskParams.segWidth;
 	int net_height = maskParams.netHeight;
-	int seg_height = maskParams.segHeight;
+	int seg_channels = maskProtos.size[1];
+	int seg_height = maskProtos.size[2];
+	int seg_width = maskProtos.size[3];
 	float mask_threshold = maskParams.maskThreshold;
 	Vec4f params = maskParams.params;
 	Size src_img_shape = maskParams.srcImgShape;
@@ -108,12 +116,12 @@ void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vecto
 	}
 }
 
-void GetMask2(const Mat& maskProposals, const Mat& mask_protos, OutputSeg& output, const MaskParams& maskParams) {
-	int seg_channels = maskParams.segChannels;
+void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputSeg& output, const MaskParams& maskParams) {
 	int net_width = maskParams.netWidth;
-	int seg_width = maskParams.segWidth;
 	int net_height = maskParams.netHeight;
-	int seg_height = maskParams.segHeight;
+	int seg_channels = maskProtos.size[1];
+	int seg_height = maskProtos.size[2];
+	int seg_width = maskProtos.size[3];
 	float mask_threshold = maskParams.maskThreshold;
 	Vec4f params = maskParams.params;
 	Size src_img_shape = maskParams.srcImgShape;
@@ -148,7 +156,7 @@ void GetMask2(const Mat& maskProposals, const Mat& mask_protos, OutputSeg& outpu
 	roi_rangs.push_back(Range(rang_x, rang_w + rang_x));
 
 	//crop
-	Mat temp_mask_protos = mask_protos(roi_rangs).clone();
+	Mat temp_mask_protos = maskProtos(roi_rangs).clone();
 	Mat protos = temp_mask_protos.reshape(0, { seg_channels,rang_w * rang_h });
 	Mat matmul_res = (maskProposals * protos).t();
 	Mat masks_feature = matmul_res.reshape(1, { rang_h,rang_w });
@@ -164,7 +172,9 @@ void GetMask2(const Mat& maskProposals, const Mat& mask_protos, OutputSeg& outpu
 	int height = ceil(net_height / seg_height * rang_h / params[1]);
 
 	resize(dest, mask, Size(width, height), INTER_NEAREST);
-	mask = mask(temp_rect - Point(left, top)) > mask_threshold;
+	Rect mask_rect = temp_rect - Point(left, top);
+	mask_rect &= Rect(0, 0, width, height);
+	mask = mask(mask_rect) > mask_threshold;
 	output.boxMask = mask;
 
 }

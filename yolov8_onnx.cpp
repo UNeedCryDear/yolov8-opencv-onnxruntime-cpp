@@ -11,6 +11,8 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 	if (_batchSize < 1) _batchSize = 1;
 	try
 	{
+		if (!CheckModelPath(modelPath))
+			return false;
 		std::vector<std::string> available_providers = GetAvailableProviders();
 		auto cuda_available = std::find(available_providers.begin(), available_providers.end(), "CUDAExecutionProvider");
 		
@@ -197,9 +199,9 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 		_outputNodeNames.size()
 	);
 	//post-process
-	int net_width = _className.size() + 4;
 	float* all_data = output_tensors[0].GetTensorMutableData<float>();
 	_outputTensorShape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
+	int net_width = _outputTensorShape[1];
 	int64_t one_output_length = VectorProduct(_outputTensorShape) / _outputTensorShape[0];
 	for (int img_index = 0; img_index < srcImgs.size(); ++img_index) {
 		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data).t();  //[bs,116,8400]=>[bs,8400,116]
