@@ -133,7 +133,7 @@ void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputSeg& output
 	int rang_w = ceil(((temp_rect.x + temp_rect.width) * params[0] + params[2]) / net_width * seg_width) - rang_x;
 	int rang_h = ceil(((temp_rect.y + temp_rect.height) * params[1] + params[3]) / net_height * seg_height) - rang_y;
 
-	//Èç¹ûÏÂÃæµÄ mask_protos(roi_rangs).clone()Î»ÖÃ±¨´í£¬ËµÃ÷ÄãµÄoutput.boxÊý¾Ý²»¶Ô£¬»òÕß¾ØÐÎ¿ò¾Í1¸öÏñËØµÄ£¬¿ªÆôÏÂÃæµÄ×¢ÊÍ²¿·Ö·ÀÖ¹±¨´í¡£
+	//å¦‚æžœä¸‹é¢çš„ mask_protos(roi_rangs).clone()ä½ç½®æŠ¥é”™ï¼Œè¯´æ˜Žä½ çš„output.boxæ•°æ®ä¸å¯¹ï¼Œæˆ–è€…çŸ©å½¢æ¡†å°±1ä¸ªåƒç´ çš„ï¼Œå¼€å¯ä¸‹é¢çš„æ³¨é‡Šéƒ¨åˆ†é˜²æ­¢æŠ¥é”™ã€‚
 	rang_w = MAX(rang_w, 1);
 	rang_h = MAX(rang_h, 1);
 	if (rang_x + rang_w > seg_width) {
@@ -175,8 +175,10 @@ void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputSeg& output
 	Rect mask_rect = temp_rect - Point(left, top);
 	mask_rect &= Rect(0, 0, width, height);
 	mask = mask(mask_rect) > mask_threshold;
-	output.boxMask = mask;
-
+	// fix the bug of size diff between mask and box 
+	Mat final_mask; 
+	resize(mask, final_mask, Size(temp_rect.width, temp_rect.height), INTER_NEAREST);
+	output.boxMask = final_mask;
 }
 
 void DrawPred(Mat& img, vector<OutputSeg> result, std::vector<std::string> classNames, vector<Scalar> color) {
