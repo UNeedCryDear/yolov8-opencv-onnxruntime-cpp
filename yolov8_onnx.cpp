@@ -135,6 +135,7 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 	catch (const std::exception&) {
 		return false;
 	}
+	return true;
 
 }
 

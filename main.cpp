@@ -7,6 +7,7 @@
 #include "yolov8_seg.h"
 #include "yolov8_seg_onnx.h"
 #include<time.h>
+#define  VIDEO_OPENCV //if define, use opencv for video.
 
 using namespace std;
 using namespace cv;
@@ -76,6 +77,80 @@ int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 }
 
 
+template<typename _Tp>
+int video_demo(_Tp& cls, string& model_path)
+{
+	vector<Scalar> color;
+	srand(time(0));
+	for (int i = 0; i < 80; i++) {
+		int b = rand() % 256;
+		int g = rand() % 256;
+		int r = rand() % 256;
+		color.push_back(Scalar(b, g, r));
+	}
+	vector<OutputSeg> result;
+	cv::VideoCapture cap(0);
+	if (!cap.isOpened())
+	{
+		std::cout << "open capture failured!" << std::endl;
+		return -1;
+	}
+	Mat frame;
+#ifdef VIDEO_OPENCV
+	Net net;
+	if (cls.ReadModel(net, model_path, true)) {
+		cout << "read net ok!" << endl;
+	}
+	else {
+		cout << "read net failured!" << endl;
+		return -1;
+	}
+
+#else
+	if (cls.ReadModel(model_path, true)) {
+		cout << "read net ok!" << endl;
+	}
+	else {
+		cout << "read net failured!" << endl;
+		return -1;
+	}
+
+#endif
+
+	while (true)
+	{
+
+		cap.read(frame);
+		if (frame.empty())
+		{
+			std::cout << "read to end" << std::endl;
+			break;
+		}
+		result.clear();
+#ifdef VIDEO_OPENCV
+
+		if (cls.Detect(frame, net, result)) {
+			DrawPred(frame, result, cls._className, color, true);
+		}
+#else
+		if (cls.OnnxDetect(frame, result)) {
+			DrawPred(frame, result, cls._className, color, true);
+		}
+#endif
+		int k = waitKey(10);
+		if (k == 27) { //esc 
+			break;
+		}
+
+	}
+	cap.release();
+
+	system("pause");
+
+	return 0;
+}
+
+
 int main() {
 
 	string img_path = "./images/zidane.jpg";
@@ -89,10 +164,16 @@ int main() {
 	Yolov8SegOnnx task_segment_onnx;
 
 	yolov8(task_detect,img,detect_model_path);    //Opencv detect
-	yolov8(task_segment,img,seg_model_path);   //opencv segment
-	yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
-	yolov8_onnx(task_segment_onnx,img,seg_model_path); //onnxruntime segment
-
+	//yolov8(task_segment,img,seg_model_path);   //opencv segment
+	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
+	//yolov8_onnx(task_segment_onnx,img,seg_model_path); //onnxruntime segment
+#ifdef VIDEO_OPENCV
+	video_demo(task_detect, detect_model_path);
+	//video_demo(task_segment, seg_model_path);
+#else
+	video_demo(task_detect_onnx, detect_model_path);
+	//video_demo(task_segment_onnx, seg_model_path);
+#endif
 	return 0;
 }
 

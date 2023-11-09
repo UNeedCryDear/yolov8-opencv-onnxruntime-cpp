@@ -24,7 +24,12 @@ struct MaskParams {
 };
 bool CheckModelPath(std::string modelPath);
 bool CheckParams(int netHeight, int netWidth, const int* netStride, int strideSize); 
-void DrawPred(cv::Mat& img, std::vector<OutputSeg> result, std::vector<std::string> classNames, std::vector<cv::Scalar> color);
+void DrawPred(cv::Mat& img,
+	std::vector<OutputSeg> result,
+	std::vector<std::string> classNames,
+	std::vector<cv::Scalar> color,
+	bool isVideo = false
+);
 void LetterBox(const cv::Mat& image, cv::Mat& outImage,
 	cv::Vec4d& params, //[ratio_x,ratio_y,dw,dh]
 	const cv::Size& newShape = cv::Size(640, 640),

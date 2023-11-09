@@ -163,7 +163,7 @@ bool Yolov8SegOnnx::ReadModel(const std::string& modelPath, bool isCuda, int cud
 	catch (const std::exception&) {
 		return false;
 	}
-
+	return true;
 }
 
 int Yolov8SegOnnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params) {
