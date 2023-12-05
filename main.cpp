@@ -5,6 +5,7 @@
 #include "yolov8.h"
 #include "yolov8_onnx.h"
 #include "yolov8_seg.h"
+#include "rtdetr_onnx.h"
 #include "yolov8_seg_onnx.h"
 #include<time.h>
 #define  VIDEO_OPENCV //if define, use opencv for video.
@@ -156,22 +157,36 @@ int main() {
 	string img_path = "./images/zidane.jpg";
 	string seg_model_path = "./models/yolov8s-seg.onnx";
 	string detect_model_path = "./models/yolov8s.onnx";
-	Mat img = imread(img_path);
+	string detect_rtdetr_path = "./models/rtdetr-l.onnx";  //yolov8-redetr
+	Mat src = imread(img_path);
+	Mat img = src.clone();
 
 	Yolov8 task_detect;
-	Yolov8Seg task_segment;
 	Yolov8Onnx task_detect_onnx;
+	RTDETROnnx task_detect_rtdetr_onnx;
+
+	Yolov8Seg task_segment;
 	Yolov8SegOnnx task_segment_onnx;
 
-	yolov8(task_detect,img,detect_model_path);    //Opencv detect
-	//yolov8(task_segment,img,seg_model_path);   //opencv segment
-	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //onnxruntime detect
-	//yolov8_onnx(task_segment_onnx,img,seg_model_path); //onnxruntime segment
+	yolov8(task_detect,img,detect_model_path);    //yolov8 opencv detect
+	//img = src.clone();
+	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //yoolov8 onnxruntime detect
+	// 
+	//img = src.clone();
+	//yolov8_onnx(task_detect_rtdetr_onnx, img, detect_rtdetr_path);  //yolov8-rtdetr onnxruntime detect
+
+	//img = src.clone();
+	//yolov8(task_segment,img,seg_model_path);   //yolov8 opencv segment
+
+	//img = src.clone();
+	//yolov8_onnx(task_segment_onnx,img,seg_model_path); //yolov8 onnxruntime segment
+
 #ifdef VIDEO_OPENCV
 	video_demo(task_detect, detect_model_path);
 	//video_demo(task_segment, seg_model_path);
 #else
-	video_demo(task_detect_onnx, detect_model_path);
+	//video_demo(task_detect_onnx, detect_model_path);
+	//video_demo(task_detect_rtdetr_onnx, detect_rtdetr_path);
 	//video_demo(task_segment_onnx, seg_model_path);
 #endif
 	return 0;

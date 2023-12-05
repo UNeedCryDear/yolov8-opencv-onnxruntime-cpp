@@ -166,7 +166,7 @@ bool Yolov8SegOnnx::ReadModel(const std::string& modelPath, bool isCuda, int cud
 	return true;
 }
 
-int Yolov8SegOnnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params) {
+int Yolov8SegOnnx::PreProcessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params) {
 	outSrcImgs.clear();
 	Size input_size = Size(_netWidth, _netHeight);
 	for (int i = 0; i < srcImgs.size(); ++i) {
@@ -211,7 +211,7 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 	vector<Mat> input_images;
 	cv::Size input_size(_netWidth, _netHeight);
 	//preprocessing
-	Preprocessing(srcImgs, input_images, params);
+	PreProcessing(srcImgs, input_images, params);
 	cv::Mat blob = cv::dnn::blobFromImages(input_images, 1 / 255.0, input_size, Scalar(0, 0, 0), true, false);
 
 	int64_t input_tensor_length = VectorProduct(_inputTensorShape);
@@ -235,6 +235,7 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 	int mask_protos_length = VectorProduct(mask_protos_shape);
 	int64_t one_output_length = VectorProduct(_outputTensorShape) / _outputTensorShape[0];
 	int net_width = (int)_outputTensorShape[1];
+	int socre_array_length = net_width - 4 - _outputMaskTensorShape[1];
 	for (int img_index = 0; img_index < srcImgs.size(); ++img_index) {
 		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data).t();  //[bs,116,8400]=>[bs,8400,116]
 		all_data += one_output_length;
@@ -245,13 +246,13 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 		std::vector<cv::Rect> boxes;//Ã¿¸öid¾ØÐÎ¿ò
 		std::vector<vector<float>> picked_proposals;  //output0[:,:, 5 + _className.size():net_width]===> for mask
 		for (int r = 0; r < rows; ++r) {    //stride
-			cv::Mat scores(1, _className.size(), CV_32F, pdata + 4);
+			cv::Mat scores(1, socre_array_length, CV_32F, pdata + 4);
 			Point classIdPoint;
 			double max_class_socre;
 			minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
 			max_class_socre = (float)max_class_socre;
 			if (max_class_socre >= _classThreshold) {
-				vector<float> temp_proto(pdata + 4 + _className.size(), pdata + net_width);
+				vector<float> temp_proto(pdata + 4 + socre_array_length, pdata + net_width);
 				picked_proposals.push_back(temp_proto);
 				//rect [x,y,w,h]
 				float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x

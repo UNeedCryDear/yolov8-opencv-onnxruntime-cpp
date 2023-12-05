@@ -59,16 +59,17 @@ bool Yolov8Seg::Detect(Mat& srcImg, Net& net, vector<OutputSeg>& output) {
 	Mat output0 = Mat(Size(net_output_img[0].size[2], net_output_img[0].size[1]), CV_32F, (float*)net_output_img[0].data).t();  //[bs,116,8400]=>[bs,8400,116]
 	int rows = output0.rows;
 	int net_width = output0.cols;
+	int socre_array_length = net_width - 4 - net_output_img[1].size[1];
 	float* pdata = (float*)output0.data;
 
 	for (int r = 0; r < rows; ++r) {
-		cv::Mat scores(1, _className.size(), CV_32FC1, pdata + 4);
+		cv::Mat scores(1, socre_array_length, CV_32FC1, pdata + 4);
 		Point classIdPoint;
 		double max_class_socre;
 		minMaxLoc(scores, 0, &max_class_socre, 0, &classIdPoint);
 		max_class_socre = (float)max_class_socre;
 		if (max_class_socre >= _classThreshold) {
-			vector<float> temp_proto(pdata + 4 + _className.size(), pdata + net_width);
+			vector<float> temp_proto(pdata + 4 + socre_array_length, pdata + net_width);
 			picked_proposals.push_back(temp_proto);
 			//rect [x,y,w,h]
 			float x = (pdata[0] - params[2]) / params[0];

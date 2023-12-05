@@ -1,4 +1,4 @@
-#include "yolov8_onnx.h"
+#include "rtdetr_onnx.h"
 using namespace std;
 using namespace cv;
 using namespace cv::dnn;
@@ -7,7 +7,7 @@ using namespace Ort;
 
 
 
-bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID, bool warmUp) {
+bool RTDETROnnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID, bool warmUp) {
 	if (_batchSize < 1) _batchSize = 1;
 	try
 	{
@@ -15,7 +15,7 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 			return false;
 		std::vector<std::string> available_providers = GetAvailableProviders();
 		auto cuda_available = std::find(available_providers.begin(), available_providers.end(), "CUDAExecutionProvider");
-		
+
 
 		if (isCuda && (cuda_available == available_providers.end()))
 		{
@@ -139,12 +139,12 @@ bool Yolov8Onnx::ReadModel(const std::string& modelPath, bool isCuda, int cudaID
 
 }
 
-int Yolov8Onnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params) {
+int RTDETROnnx::PreProcessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params) {
 	outSrcImgs.clear();
 	Size input_size = Size(_netWidth, _netHeight);
 	for (int i = 0; i < srcImgs.size(); ++i) {
 		Mat temp_img = srcImgs[i];
-		Vec4d temp_param = {1,1,0,0};
+		Vec4d temp_param = { 1,1,0,0 };
 		if (temp_img.size() != input_size) {
 			Mat borderImg;
 			LetterBox(temp_img, borderImg, temp_param, input_size, false, false, true, 32);
@@ -158,7 +158,7 @@ int Yolov8Onnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<c
 		}
 	}
 
-	int lack_num =  _batchSize- srcImgs.size();
+	int lack_num = _batchSize - srcImgs.size();
 	if (lack_num > 0) {
 		for (int i = 0; i < lack_num; ++i) {
 			Mat temp_img = Mat::zeros(input_size, CV_8UC3);
@@ -170,7 +170,7 @@ int Yolov8Onnx::Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<c
 	return 0;
 
 }
-bool Yolov8Onnx::OnnxDetect(cv::Mat& srcImg, std::vector<OutputSeg>& output) {
+bool RTDETROnnx::OnnxDetect(cv::Mat& srcImg, std::vector<OutputSeg>& output) {
 	std::vector<cv::Mat> input_data = { srcImg };
 	std::vector<std::vector<OutputSeg>> tenp_output;
 	if (OnnxBatchDetect(input_data, tenp_output)) {
@@ -179,12 +179,12 @@ bool Yolov8Onnx::OnnxDetect(cv::Mat& srcImg, std::vector<OutputSeg>& output) {
 	}
 	else return false;
 }
-bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std::vector<OutputSeg>>& output) {
+bool RTDETROnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std::vector<OutputSeg>>& output) {
 	vector<Vec4d> params;
 	vector<Mat> input_images;
 	cv::Size input_size(_netWidth, _netHeight);
 	//preprocessing
-	Preprocessing(srcImgs, input_images, params);
+	PreProcessing(srcImgs, input_images, params);
 	cv::Mat blob = cv::dnn::blobFromImages(input_images, 1 / 255.0, input_size, Scalar(0, 0, 0), true, false);
 
 	int64_t input_tensor_length = VectorProduct(_inputTensorShape);
@@ -202,17 +202,18 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 	//post-process
 	float* all_data = output_tensors[0].GetTensorMutableData<float>();
 	_outputTensorShape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
-	int net_width = _outputTensorShape[1];
+	int net_width = _outputTensorShape[2];
 	int socre_array_length = net_width - 4;
+	int input_tensor_width = _inputTensorShape[2];
+	int input_tensor_height = _inputTensorShape[3];
 	int64_t one_output_length = VectorProduct(_outputTensorShape) / _outputTensorShape[0];
 	for (int img_index = 0; img_index < srcImgs.size(); ++img_index) {
-		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data).t();  //[bs,116,8400]=>[bs,8400,116]
+		Mat output0 = Mat(Size((int)_outputTensorShape[2], (int)_outputTensorShape[1]), CV_32F, all_data);
 		all_data += one_output_length;
 		float* pdata = (float*)output0.data;
 		int rows = output0.rows;
-		std::vector<int> class_ids;//结果id数组
-		std::vector<float> confidences;//结果每个id对应置信度数组
-		std::vector<cv::Rect> boxes;//每个id矩形框
+		cv::Rect holeImgRect(0, 0, srcImgs[img_index].cols, srcImgs[img_index].rows);
+		std::vector<OutputSeg> temp_output;
 		for (int r = 0; r < rows; ++r) {    //stride
 			cv::Mat scores(1, socre_array_length, CV_32F, pdata + 4);
 			Point classIdPoint;
@@ -222,31 +223,22 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 			if (max_class_socre >= _classThreshold) {
 
 				//rect [x,y,w,h]
-				float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
-				float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y
-				float w = pdata[2] / params[img_index][0];  //w
-				float h = pdata[3] / params[img_index][1];  //h
+				float x = (pdata[0] * input_tensor_width - params[img_index][2]) / params[img_index][0];  //x
+				float y = (pdata[1] * input_tensor_height - params[img_index][3]) / params[img_index][1];  //y
+				float w = pdata[2] / params[img_index][0] * input_tensor_width;  //w
+				float h = pdata[3] / params[img_index][1] * input_tensor_height;  //h
 				int left = MAX(int(x - 0.5 * w + 0.5), 0);
 				int top = MAX(int(y - 0.5 * h + 0.5), 0);
-				class_ids.push_back(classIdPoint.x);
-				confidences.push_back(max_class_socre);
-				boxes.push_back(Rect(left, top, int(w + 0.5), int(h + 0.5)));
+
+				Rect box = Rect(left, top, int(w + 0.5), int(h + 0.5));
+
+				OutputSeg result;
+				result.id = classIdPoint.x;
+				result.confidence = max_class_socre;
+				result.box = box & holeImgRect;
+				temp_output.push_back(result);
 			}
 			pdata += net_width;//下一行
-		}
-
-		vector<int> nms_result;
-		cv::dnn::NMSBoxes(boxes, confidences, _classThreshold, _nmsThreshold, nms_result);
-		std::vector<vector<float>> temp_mask_proposals;
-		cv::Rect holeImgRect(0, 0, srcImgs[img_index].cols, srcImgs[img_index].rows);
-		std::vector<OutputSeg> temp_output;
-		for (int i = 0; i < nms_result.size(); ++i) {
-			int idx = nms_result[i];
-			OutputSeg result;
-			result.id = class_ids[idx];
-			result.confidence = confidences[idx];
-			result.box = boxes[idx] & holeImgRect;
-			temp_output.push_back(result);
 		}
 		output.push_back(temp_output);
 	}

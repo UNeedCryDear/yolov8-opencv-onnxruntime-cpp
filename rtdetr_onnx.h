@@ -4,13 +4,15 @@
 #include <opencv2/opencv.hpp>
 #include "yolov8_utils.h"
 #include<onnxruntime_cxx_api.h>
+
 //#include <tensorrt_provider_factory.h>  //if use OrtTensorRTProviderOptionsV2
 //#include <onnxruntime_c_api.h>
 
-class Yolov8SegOnnx {
+
+class RTDETROnnx {
 public:
-	Yolov8SegOnnx() :_OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
-	~Yolov8SegOnnx() {};// delete _OrtMemoryInfo;
+	RTDETROnnx() : _OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
+	~RTDETROnnx() {};// delete _OrtMemoryInfo;
 
 
 public:
@@ -41,7 +43,7 @@ private:
 		return std::accumulate(v.begin(), v.end(), 1, std::multiplies<T>());
 	};
 	int PreProcessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params);
-
+	
 	const int _netWidth = 640;   //ONNX-net-input-width
 	const int _netHeight = 640;  //ONNX-net-input-height
 
@@ -58,10 +60,9 @@ private:
 	Ort::Session* _OrtSession = nullptr;
 	Ort::MemoryInfo _OrtMemoryInfo;
 #if ORT_API_VERSION < ORT_OLD_VISON
-
-	char* _inputName, * _output_name0, * _output_name1;
+	char* _inputName, * _output_name0;
 #else
-	std::shared_ptr<char> _inputName, _output_name0,_output_name1;
+	std::shared_ptr<char> _inputName, _output_name0;
 #endif
 
 	std::vector<char*> _inputNodeNames; //输入节点名
@@ -75,7 +76,7 @@ private:
 	std::vector<int64_t> _inputTensorShape; //输入张量shape
 
 	std::vector<int64_t> _outputTensorShape;
-	std::vector<int64_t> _outputMaskTensorShape;
+
 public:
 	std::vector<std::string> _className = {
 		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",

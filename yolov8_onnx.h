@@ -42,7 +42,7 @@ private:
 	{
 		return std::accumulate(v.begin(), v.end(), 1, std::multiplies<T>());
 	};
-	int Preprocessing(const std::vector<cv::Mat>& SrcImgs, std::vector<cv::Mat>& OutSrcImgs, std::vector<cv::Vec4d>& params);
+	int Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params);
 
 	const int _netWidth = 640;   //ONNX-net-input-width
 	const int _netHeight = 640;  //ONNX-net-input-height
