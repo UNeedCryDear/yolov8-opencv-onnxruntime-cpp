@@ -8,14 +8,36 @@ OpenCV>=4.7.0<br>
 OpenCV>=4.7.0<br>
 
 2. export for opencv-dnn:</br>
-> ```yolo export model=path/to/model.pt format=onnx dynamic=False  opset=12```</br>
-> + Note: When exporting to opencv, it is best to set opset to 12
+```bash
+#Note: When exporting to opencv, it is best to set opset to 12
+
+yolo export model=path/to/model.pt format=onnx dynamic=False  opset=12
+```
+
+3. export RT-DETR:</br>
+```bash
+#Note: rtdetr need opset>=16,dynamic=False/True 
+
+yolo export model=path/to/rtdetr-l.pt format=onnx  opset=16
+
+```
+
+```python
+from ultralytics import YOLO
+model = YOLO('./pre_model/yolov8-rtdetr-l.pt')
+results = model.export(format='onnx',opset=16)
+```
+
 
 ## requirements for onnxruntime （only yolo*_onnx.h/cpp）
 >opencv>=4.5.0 </br>
 ONNXRuntime>=1.9.0 </br>
 
 ## 更新说明：
+#### 2023.12.05更新<br>
++ 新增yolov8-RTDETR部署。
++ 优化部分代码，例如输出shape之类从输出中获取，而非像之前需要设置正确参数。
+
 #### 2023.11.09更新<br>
 + 修复此pr中提到的一些问题[https://github.com/UNeedCryDear/yolov8-opencv-onnxruntime-cpp/pull/30]，此bug会导致mask与box大小可能会差几个像素从而导致出现一些问题（如果用的时候没有注意的话），本次更新之后会将其缩放到一致大小。
 + 新增视频流推理的demo，这是由于发现很多初学者调用视频的时候总是每一张图片都去读取一次模型，所以本次更新一起加上去。
