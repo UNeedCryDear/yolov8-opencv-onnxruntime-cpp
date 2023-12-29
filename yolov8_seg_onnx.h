@@ -10,7 +10,10 @@
 class Yolov8SegOnnx {
 public:
 	Yolov8SegOnnx() :_OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
-	~Yolov8SegOnnx() {};// delete _OrtMemoryInfo;
+	~Yolov8SegOnnx() {
+		if (_OrtSession != nullptr)
+			delete _OrtSession;
+	};// delete _OrtMemoryInfo;
 
 
 public:

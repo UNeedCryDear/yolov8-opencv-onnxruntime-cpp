@@ -12,7 +12,10 @@
 class RTDETROnnx {
 public:
 	RTDETROnnx() : _OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
-	~RTDETROnnx() {};// delete _OrtMemoryInfo;
+	~RTDETROnnx() {
+		if (_OrtSession != nullptr)
+			delete _OrtSession;
+	};// delete _OrtMemoryInfo;
 
 
 public:

@@ -12,7 +12,11 @@
 class Yolov8Onnx {
 public:
 	Yolov8Onnx() :_OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
-	~Yolov8Onnx() {};// delete _OrtMemoryInfo;
+	~Yolov8Onnx() {
+		if (_OrtSession != nullptr)
+			delete _OrtSession;
+	
+	};// delete _OrtMemoryInfo;
 
 
 public:
