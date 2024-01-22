@@ -34,6 +34,9 @@ results = model.export(format='onnx',opset=16)
 ONNXRuntime>=1.9.0 </br>
 
 ## 更新说明：
+#### 2024.01.22更新<br>
++ 新增yolov8-obb模型部署（https://github.com/UNeedCryDear/yolov8-opencv-onnxruntime-cpp/issues/40）
++ 修改一些便利性使用的问题。
 #### 2023.12.05更新<br>
 + 新增yolov8-RTDETR部署。
 + 优化部分代码，例如输出shape之类从输出中获取，而非像之前需要设置正确参数。

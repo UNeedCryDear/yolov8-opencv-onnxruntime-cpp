@@ -7,19 +7,21 @@
 #include "yolov8_seg.h"
 #include "rtdetr_onnx.h"
 #include "yolov8_seg_onnx.h"
+#include "yolov8_obb.h"
+#include "yolov8_obb_onnx.h"
 #include<time.h>
-#define  VIDEO_OPENCV //if define, use opencv for video.
+//#define  VIDEO_OPENCV //if define, use opencv for video.
 
 using namespace std;
 using namespace cv;
 using namespace dnn;
 
 template<typename _Tp>
-int yolov8(_Tp& cls,Mat& img,string& model_path)
+int yolov8(_Tp& task, Mat& img, string& model_path)
 {
 
 	Net net;
-	if (cls.ReadModel(net, model_path, false)) {
+	if (task.ReadModel(net, model_path, false)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -34,11 +36,11 @@ int yolov8(_Tp& cls,Mat& img,string& model_path)
 		int r = rand() % 256;
 		color.push_back(Scalar(b, g, r));
 	}
-	vector<OutputSeg> result;
+	vector<OutputParams> result;
 
 
-	if (cls.Detect(img, net, result)) {
-		DrawPred(img, result, cls._className, color);
+	if (task.Detect(img, net, result)) {
+		DrawPred(img, result, task._className, color);
 	}
 	else {
 		cout << "Detect Failed!" << endl;
@@ -48,10 +50,10 @@ int yolov8(_Tp& cls,Mat& img,string& model_path)
 }
 
 template<typename _Tp>
-int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
+int yolov8_onnx(_Tp& task, Mat& img, string& model_path)
 {
 
-	if (cls.ReadModel( model_path, false)) {
+	if (task.ReadModel(model_path, false)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -66,9 +68,9 @@ int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 		int r = rand() % 256;
 		color.push_back(Scalar(b, g, r));
 	}
-	vector<OutputSeg> result;
-	if (cls.OnnxDetect(img, result)) {
-		DrawPred(img, result, cls._className, color);
+	vector<OutputParams> result;
+	if (task.OnnxDetect(img, result)) {
+		DrawPred(img, result, task._className, color);
 	}
 	else {
 		cout << "Detect Failed!" << endl;
@@ -79,7 +81,7 @@ int yolov8_onnx(_Tp& cls, Mat& img, string& model_path)
 
 
 template<typename _Tp>
-int video_demo(_Tp& cls, string& model_path)
+int video_demo(_Tp& task, string& model_path)
 {
 	vector<Scalar> color;
 	srand(time(0));
@@ -89,7 +91,7 @@ int video_demo(_Tp& cls, string& model_path)
 		int r = rand() % 256;
 		color.push_back(Scalar(b, g, r));
 	}
-	vector<OutputSeg> result;
+	vector<OutputParams> result;
 	cv::VideoCapture cap(0);
 	if (!cap.isOpened())
 	{
@@ -99,7 +101,7 @@ int video_demo(_Tp& cls, string& model_path)
 	Mat frame;
 #ifdef VIDEO_OPENCV
 	Net net;
-	if (cls.ReadModel(net, model_path, true)) {
+	if (task.ReadModel(net, model_path, true)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -108,7 +110,7 @@ int video_demo(_Tp& cls, string& model_path)
 	}
 
 #else
-	if (cls.ReadModel(model_path, true)) {
+	if (task.ReadModel(model_path, true)) {
 		cout << "read net ok!" << endl;
 	}
 	else {
@@ -130,12 +132,12 @@ int video_demo(_Tp& cls, string& model_path)
 		result.clear();
 #ifdef VIDEO_OPENCV
 
-		if (cls.Detect(frame, net, result)) {
-			DrawPred(frame, result, cls._className, color, true);
+		if (task.Detect(frame, net, result)) {
+			DrawPred(frame, result, task._className, color, true);
 		}
 #else
-		if (cls.OnnxDetect(frame, result)) {
-			DrawPred(frame, result, cls._className, color, true);
+		if (task.OnnxDetect(frame, result)) {
+			DrawPred(frame, result, task._className, color, true);
 		}
 #endif
 		int k = waitKey(10);
@@ -154,40 +156,50 @@ int video_demo(_Tp& cls, string& model_path)
 
 int main() {
 
-	string img_path = "./images/zidane.jpg";
-	string seg_model_path = "./models/yolov8s-seg.onnx";
-	string detect_model_path = "./models/yolov8s.onnx";
-	string detect_rtdetr_path = "./models/rtdetr-l.onnx";  //yolov8-redetr
+	string img_path = "./images/bus.jpg";
+
+	string model_path_detect = "./models/yolov8s.onnx";
+	string model_path_rtdetr = "./models/rtdetr-l.onnx";  //yolov8-redetr
+	string model_path_obb = "./models/yolov8s-obb.onnx";
+	string model_path_seg = "./models/yolov8s-seg.onnx";
+
+
 	Mat src = imread(img_path);
 	Mat img = src.clone();
 
-	Yolov8 task_detect;
-	Yolov8Onnx task_detect_onnx;
-	RTDETROnnx task_detect_rtdetr_onnx;
+	Yolov8				task_detect_ocv;
+	Yolov8Onnx			task_detect_ort;
+	RTDETROnnx			task_rtdetr_ort;
+	Yolov8Seg			task_segment_ocv;
+	Yolov8SegOnnx		task_segment_ort;
+	Yolov8Obb			task_obb_ocv;
+	Yolov8ObbOnnx		task_obb_ort;
 
-	Yolov8Seg task_segment;
-	Yolov8SegOnnx task_segment_onnx;
-
-	yolov8(task_detect,img,detect_model_path);    //yolov8 opencv detect
+	yolov8(task_detect_ocv,img,model_path_detect);    //yolov8 opencv detect
 	//img = src.clone();
-	//yolov8_onnx(task_detect_onnx,img,detect_model_path);  //yoolov8 onnxruntime detect
+	//yolov8_onnx(task_detect_ort,img,model_path_detect);  //yoolov8 onnxruntime detect
 	// 
 	//img = src.clone();
-	//yolov8_onnx(task_detect_rtdetr_onnx, img, detect_rtdetr_path);  //yolov8-rtdetr onnxruntime detect
+	//yolov8_onnx(task_rtdetr_ort, img, model_path_rtdetr);  //yolov8-rtdetr onnxruntime detect
 
 	//img = src.clone();
-	//yolov8(task_segment,img,seg_model_path);   //yolov8 opencv segment
+	//yolov8(task_segment_ocv,img,model_path_seg);   //yolov8 opencv segment
+	//img = src.clone();
+	//yolov8_onnx(task_segment_ort,img,model_path_seg); //yolov8 onnxruntime segment
+
 
 	//img = src.clone();
-	//yolov8_onnx(task_segment_onnx,img,seg_model_path); //yolov8 onnxruntime segment
+	//yolov8(task_obb_ocv, img, model_path_obb); //yolov8 opencv obb
+	//img = src.clone();
+	//yolov8_onnx(task_obb_ort, img, model_path_obb); //yolov8 onnxruntime obb
 
 #ifdef VIDEO_OPENCV
-	video_demo(task_detect, detect_model_path);
-	//video_demo(task_segment, seg_model_path);
+	video_demo(task_detect_ocv, model_path_detect);
+	//video_demo(task_segment_ocv, model_path_seg);
 #else
-	//video_demo(task_detect_onnx, detect_model_path);
-	//video_demo(task_detect_rtdetr_onnx, detect_rtdetr_path);
-	//video_demo(task_segment_onnx, seg_model_path);
+	//video_demo(task_detect_ort, model_path_detect);
+	//video_demo(task_rtdetr_ort, model_path_rtdetr);
+	//video_demo(task_segment_ort, model_path_seg);
 #endif
 	return 0;
 }

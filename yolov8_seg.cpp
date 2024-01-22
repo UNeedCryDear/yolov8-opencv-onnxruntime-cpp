@@ -8,6 +8,10 @@ bool Yolov8Seg::ReadModel(Net& net, string& netPath, bool isCuda = false) {
 		if (!CheckModelPath(netPath))
 			return false;
 		net = readNet(netPath);
+#if CV_VERSION_MAJOR==4 &&CV_VERSION_MINOR<7
+		cout << "Yolov8-seg Need OpenCV Version >=4.7.0" << endl;
+		return false;
+#endif
 #if CV_VERSION_MAJOR==4 &&CV_VERSION_MINOR==7&&CV_VERSION_REVISION==0
 		net.enableWinograd(false);  //bug of opencv4.7.x in AVX only platform ,https://github.com/opencv/opencv/pull/23112 and https://github.com/opencv/opencv/issues/23080 
 		//net.enableWinograd(true);		//If your CPU supports AVX2, you can set it true to speed up
@@ -32,7 +36,7 @@ bool Yolov8Seg::ReadModel(Net& net, string& netPath, bool isCuda = false) {
 }
 
 
-bool Yolov8Seg::Detect(Mat& srcImg, Net& net, vector<OutputSeg>& output) {
+bool Yolov8Seg::Detect(Mat& srcImg, Net& net, vector<OutputParams>& output) {
 	Mat blob;
 	output.clear();
 	int col = srcImg.cols;
@@ -92,7 +96,7 @@ bool Yolov8Seg::Detect(Mat& srcImg, Net& net, vector<OutputSeg>& output) {
 	for (int i = 0; i < nms_result.size(); ++i) {
 
 		int idx = nms_result[i];
-		OutputSeg result;
+		OutputParams result;
 		result.id = class_ids[idx];
 		result.confidence = confidences[idx];
 		result.box = boxes[idx] & holeImgRect;

@@ -81,7 +81,7 @@ void LetterBox(const cv::Mat& image, cv::Mat& outImage, cv::Vec4d& params, const
 	cv::copyMakeBorder(outImage, outImage, top, bottom, left, right, cv::BORDER_CONSTANT, color);
 }
 
-void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vector<OutputSeg>& output, const MaskParams& maskParams) {
+void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vector<OutputParams>& output, const MaskParams& maskParams) {
 	//cout << maskProtos.size << endl;
 
 	int net_width = maskParams.netWidth;
@@ -116,7 +116,7 @@ void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vecto
 	}
 }
 
-void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputSeg& output, const MaskParams& maskParams) {
+void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputParams& output, const MaskParams& maskParams) {
 	int net_width = maskParams.netWidth;
 	int net_height = maskParams.netHeight;
 	int seg_channels = maskProtos.size[1];
@@ -181,15 +181,34 @@ void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputSeg& output
 	output.boxMask = mask;
 
 }
+int BBox2Obb(float centerX, float centerY, float boxW, float boxH, float angle, RotatedRect& rotatedRect) {
+	rotatedRect = RotatedRect(Point2f(centerX, centerY), Size2f(boxW, boxH),angle);
+	return 0;
+}
+void DrawRotatedBox(cv::Mat &srcImg, cv::RotatedRect box, cv::Scalar color, int thinkness) {
+	Point2f p[4];
+	box.points(p);
+	for (int l = 0; l < 4; ++l) {
+		line(srcImg, p[l], p[(l + 1) % 4], color, thinkness, 8);
+	}
+}
 
-void DrawPred(Mat& img, vector<OutputSeg> result, std::vector<std::string> classNames, vector<Scalar> color, bool isVideo) {
+void DrawPred(Mat& img, vector<OutputParams> result, std::vector<std::string> classNames, vector<Scalar> color, bool isVideo) {
 	Mat mask = img.clone();
 	for (int i = 0; i < result.size(); i++) {
 		int left, top;
-		left = result[i].box.x;
-		top = result[i].box.y;
+
 		int color_num = i;
-		rectangle(img, result[i].box, color[result[i].id], 2, 8);
+		if (result[i].box.area() > 0) {
+			rectangle(img, result[i].box, color[result[i].id], 2, 8);
+			left = result[i].box.x;
+			top = result[i].box.y;
+		}
+		if (result[i].rotatedBox.size.width * result[i].rotatedBox.size.height > 0) {
+			DrawRotatedBox(img, result[i].rotatedBox, color[result[i].id], 2);
+			left = result[i].rotatedBox.center.x;
+			top = result[i].rotatedBox.center.y;
+		}
 		if (result[i].boxMask.rows && result[i].boxMask.cols > 0)
 			mask(result[i].box).setTo(color[result[i].id], result[i].boxMask);
 		string label = classNames[result[i].id] + ":" + to_string(result[i].confidence);

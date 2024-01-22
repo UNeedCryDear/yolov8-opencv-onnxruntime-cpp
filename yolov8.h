@@ -10,7 +10,7 @@ public:
 	~Yolov8() {}
 
 	bool ReadModel(cv::dnn::Net& net, std::string& netPath, bool isCuda);
-	bool Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputSeg>& output);
+	bool Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputParams>& output);
 
 	int _netWidth = 640;   //ONNX图片输入宽度
 	int _netHeight = 640;  //ONNX图片输入高度

@@ -197,16 +197,16 @@ int Yolov8SegOnnx::PreProcessing(const std::vector<cv::Mat>& srcImgs, std::vecto
 	return 0;
 
 }
-bool Yolov8SegOnnx::OnnxDetect(cv::Mat& srcImg, std::vector<OutputSeg>& output) {
+bool Yolov8SegOnnx::OnnxDetect(cv::Mat& srcImg, std::vector<OutputParams>& output) {
 	std::vector<cv::Mat> input_data = { srcImg };
-	std::vector<std::vector<OutputSeg>> tenp_output;
+	std::vector<std::vector<OutputParams>> tenp_output;
 	if (OnnxBatchDetect(input_data, tenp_output)) {
 		output = tenp_output[0];
 		return true;
 	}
 	else return false;
 }
-bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std::vector<OutputSeg>>& output) {
+bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std::vector<OutputParams>>& output) {
 	vector<Vec4d> params;
 	vector<Mat> input_images;
 	cv::Size input_size(_netWidth, _netHeight);
@@ -272,10 +272,10 @@ bool Yolov8SegOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 		cv::dnn::NMSBoxes(boxes, confidences, _classThreshold, _nmsThreshold, nms_result);
 		std::vector<vector<float>> temp_mask_proposals;
 		cv::Rect holeImgRect(0, 0, srcImgs[img_index].cols, srcImgs[img_index].rows);
-		std::vector<OutputSeg> temp_output;
+		std::vector<OutputParams> temp_output;
 		for (int i = 0; i < nms_result.size(); ++i) {
 			int idx = nms_result[i];
-			OutputSeg result;
+			OutputParams result;
 			result.id = class_ids[idx];
 			result.confidence = confidences[idx];
 			result.box = boxes[idx] & holeImgRect;

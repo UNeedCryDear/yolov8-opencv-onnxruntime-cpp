@@ -9,12 +9,13 @@
 //#include <onnxruntime_c_api.h>
 
 
-class RTDETROnnx {
+class Yolov8ObbOnnx {
 public:
-	RTDETROnnx() : _OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
-	~RTDETROnnx() {
+	Yolov8ObbOnnx() :_OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
+	~Yolov8ObbOnnx() {
 		if (_OrtSession != nullptr)
 			delete _OrtSession;
+	
 	};// delete _OrtMemoryInfo;
 
 
@@ -45,10 +46,10 @@ private:
 	{
 		return std::accumulate(v.begin(), v.end(), 1, std::multiplies<T>());
 	};
-	int PreProcessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params);
-	
-	const int _netWidth = 640;   //ONNX-net-input-width
-	const int _netHeight = 640;  //ONNX-net-input-height
+	int Preprocessing(const std::vector<cv::Mat>& srcImgs, std::vector<cv::Mat>& outSrcImgs, std::vector<cv::Vec4d>& params);
+
+	const int _netWidth = 1024;   //ONNX-net-input-width
+	const int _netHeight = 1024;  //ONNX-net-input-height
 
 	int _batchSize = 1;  //if multi-batch,set this
 	bool _isDynamicShape = false;//onnx support dynamic shape
@@ -81,16 +82,12 @@ private:
 	std::vector<int64_t> _outputTensorShape;
 
 public:
-	std::vector<std::string> _className = {
-		"person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-		"fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-		"elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-		"skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-		"tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-		"sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-		"potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-		"microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-		"hair drier", "toothbrush"
+	std::vector<std::string> _className = 
+	{  "plane",  "ship", "storage tank",
+		"baseball diamond",  "tennis court",   "basketball court",
+		"ground track field", "harbor",  "bridge",
+		"large vehicle",  "small vehicle",  "helicopter",
+		"roundabout",  "soccer ball field",  "swimming pool"
 	};
 
 

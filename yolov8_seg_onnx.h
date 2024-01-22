@@ -29,12 +29,12 @@ public:
 	* \param[in] srcImg:a 3-channels image.
 	* \param[out] output:detection results of input image.
 	*/
-	bool OnnxDetect(cv::Mat& srcImg, std::vector<OutputSeg>& output);
+	bool OnnxDetect(cv::Mat& srcImg, std::vector<OutputParams>& output);
 	/** \brief  detect,batch size= _batchSize
 	* \param[in] srcImg:A batch of images.
 	* \param[out] output:detection results of input images.
 	*/
-	bool OnnxBatchDetect(std::vector<cv::Mat>& srcImg, std::vector<std::vector<OutputSeg>>& output);
+	bool OnnxBatchDetect(std::vector<cv::Mat>& srcImg, std::vector<std::vector<OutputParams>>& output);
 
 private:
 
@@ -56,7 +56,7 @@ private:
 
 
 	//ONNXRUNTIME	
-	Ort::Env _OrtEnv = Ort::Env(OrtLoggingLevel::ORT_LOGGING_LEVEL_ERROR, "Yolov5-Seg");
+	Ort::Env _OrtEnv = Ort::Env(OrtLoggingLevel::ORT_LOGGING_LEVEL_ERROR, "Yolov8");
 	Ort::SessionOptions _OrtSessionOptions = Ort::SessionOptions();
 	Ort::Session* _OrtSession = nullptr;
 	Ort::MemoryInfo _OrtMemoryInfo;

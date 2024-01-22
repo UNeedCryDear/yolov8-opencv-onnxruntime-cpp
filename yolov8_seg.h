@@ -10,7 +10,7 @@ public:
 	~Yolov8Seg() {}
 
 	bool ReadModel(cv::dnn::Net& net, std::string& netPath, bool isCuda);
-	bool Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputSeg>& output);
+	bool Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputParams>& output);
 
 	//类别名，自己的模型需要修改此项
 	std::vector<std::string> _className = { "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
