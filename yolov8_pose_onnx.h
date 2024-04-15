@@ -8,7 +8,6 @@
 //#include <tensorrt_provider_factory.h>  //if use OrtTensorRTProviderOptionsV2
 //#include <onnxruntime_c_api.h>
 
-
 class Yolov8PoseOnnx {
 public:
 	Yolov8PoseOnnx() :_OrtMemoryInfo(Ort::MemoryInfo::CreateCpu(OrtAllocatorType::OrtDeviceAllocator, OrtMemType::OrtMemTypeCPUOutput)) {};
@@ -55,7 +54,6 @@ private:
 	bool _isDynamicShape = false;//onnx support dynamic shape
 	float _classThreshold = 0.25;
 	float _nmsThreshold = 0.45;
-	//float _maskThreshold = 0.5;
 
 
 	//ONNXRUNTIME	

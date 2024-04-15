@@ -12,7 +12,6 @@ struct PoseKeyPoint {
 	float confidence = 0;
 };
 
-
 struct OutputParams {
 	int id;             //结果类别id
 	float confidence;   //结果置信度

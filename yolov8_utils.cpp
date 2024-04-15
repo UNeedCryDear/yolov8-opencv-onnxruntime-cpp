@@ -253,7 +253,6 @@ void DrawPredPose(cv::Mat& img, std::vector<OutputParams> result, PoseParams& po
 				continue;
 			cv::Scalar kptColor = poseParams.posePalette[poseParams.kptColor[j]];
 			cv::circle(img, cv::Point(kpt.x, kpt.y), poseParams.kptRadius, kptColor, -1, 8);
-
 		}
 		if (poseParams.isDrawKptLine) {
 			for (int j = 0; j < poseParams.skeleton.size(); ++j) {

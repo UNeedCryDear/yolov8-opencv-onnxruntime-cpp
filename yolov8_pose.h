@@ -5,9 +5,7 @@
 
 class Yolov8Pose {
 public:
-	Yolov8Pose()
-	{
-	}
+	Yolov8Pose() {}
 	~Yolov8Pose() {}
 
 	bool ReadModel(cv::dnn::Net& net, std::string& netPath, bool isCuda);
@@ -18,11 +16,7 @@ public:
 
 
 	//类别名，自己的模型需要修改此项
-	std::vector<std::string> _className =
-	{
-		"person"
-	};
-
+	std::vector<std::string> _className ={ "person" };
 
 private:
 	float _classThreshold = 0.25;

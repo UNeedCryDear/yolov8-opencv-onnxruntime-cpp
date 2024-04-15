@@ -59,7 +59,7 @@ bool Yolov8Pose::Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputPa
 	std::vector<int> class_ids;// res-class_id
 	std::vector<float> confidences;// res-conf 
 	std::vector<cv::Rect> boxes;// res-box
-	std::vector<std::vector<PoseKeyPoint>> pose_key_points;
+	std::vector<std::vector<PoseKeyPoint>> pose_key_points; //保存kpt
 	cv::Mat output0 = cv::Mat(cv::Size(net_output_img[0].size[2], net_output_img[0].size[1]), CV_32F, (float*)net_output_img[0].data).t();  //[bs,20,21504]=>[bs,21504,20]
 	int net_width = output0.cols;
 	int rows = output0.rows;
@@ -110,7 +110,6 @@ bool Yolov8Pose::Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputPa
 		result.box = boxes[idx]& holeImgRect;
 		result.keyPoints = pose_key_points[idx];
 		output.push_back(result);
-
 	}
 	if (output.size())
 		return true;

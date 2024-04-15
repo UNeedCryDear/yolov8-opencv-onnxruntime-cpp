@@ -220,12 +220,11 @@ bool Yolov8PoseOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<
 		std::vector<int> class_ids;//结果id数组
 		std::vector<float> confidences;//结果每个id对应置信度数组
 		std::vector<cv::Rect> boxes;//每个id矩形框
-		std::vector<std::vector<PoseKeyPoint>> pose_key_points;
+		std::vector<std::vector<PoseKeyPoint>> pose_key_points; //保存kpt
 
 		for (int r = 0; r < rows; ++r) {    
 			float max_class_socre= pdata[4];
 			if (max_class_socre >= _classThreshold) {
-
 				//rect [x,y,w,h]
 				float x = (pdata[0] - params[img_index][2]) / params[img_index][0];  //x
 				float y = (pdata[1] - params[img_index][3]) / params[img_index][1];  //y

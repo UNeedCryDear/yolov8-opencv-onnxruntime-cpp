@@ -34,6 +34,10 @@ results = model.export(format='onnx',opset=16)
 ONNXRuntime>=1.9.0 </br>
 
 ## 更新说明：
+#### 2024.04.15更新<br>
++ 新增yolov8-pose模型部署（https://github.com/UNeedCryDear/yolov8-opencv-onnxruntime-cpp/issues/52）
++ 修复命名空间使用问题。
+
 #### 2024.01.22更新<br>
 + 新增yolov8-obb模型部署（https://github.com/UNeedCryDear/yolov8-opencv-onnxruntime-cpp/issues/40）
 + 修改一些便利性使用的问题。
