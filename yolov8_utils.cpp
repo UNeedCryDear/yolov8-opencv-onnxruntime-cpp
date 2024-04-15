@@ -1,18 +1,18 @@
 #pragma once
 #include "yolov8_utils.h"
-using namespace cv;
-using namespace std;
+//using namespace cv;
+//using namespace std;
 bool CheckParams(int netHeight, int netWidth, const int* netStride, int strideSize) {
 	if (netHeight % netStride[strideSize - 1] != 0 || netWidth % netStride[strideSize - 1] != 0)
 	{
-		cout << "Error:_netHeight and _netWidth must be multiple of max stride " << netStride[strideSize - 1] << "!" << endl;
+		std::cout << "Error:_netHeight and _netWidth must be multiple of max stride " << netStride[strideSize - 1] << "!" << std::endl;
 		return false;
 	}
 	return true;
 }
 bool CheckModelPath(std::string modelPath) {
 	if (0 != _access(modelPath.c_str(), 0)) {
-		cout << "Model path does not exist,  please check " << modelPath << endl;
+		std::cout << "Model path does not exist,  please check " << modelPath << std::endl;
 		return false;
 	}
 	else
@@ -24,8 +24,8 @@ void LetterBox(const cv::Mat& image, cv::Mat& outImage, cv::Vec4d& params, const
 {
 	if (false) {
 		int maxLen = MAX(image.rows, image.cols);
-		outImage = Mat::zeros(Size(maxLen, maxLen), CV_8UC3);
-		image.copyTo(outImage(Rect(0, 0, image.cols, image.rows)));
+		outImage = cv::Mat::zeros(cv::Size(maxLen, maxLen), CV_8UC3);
+		image.copyTo(outImage(cv::Rect(0, 0, image.cols, image.rows)));
 		params[0] = 1;
 		params[1] = 1;
 		params[3] = 0;
@@ -82,7 +82,7 @@ void LetterBox(const cv::Mat& image, cv::Mat& outImage, cv::Vec4d& params, const
 }
 
 void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vector<OutputParams>& output, const MaskParams& maskParams) {
-	//cout << maskProtos.size << endl;
+	//std::cout << maskProtos.size << std::endl;
 
 	int net_width = maskParams.netWidth;
 	int net_height = maskParams.netHeight;
@@ -90,43 +90,43 @@ void GetMask(const cv::Mat& maskProposals, const cv::Mat& maskProtos, std::vecto
 	int seg_height = maskProtos.size[2];
 	int seg_width = maskProtos.size[3];
 	float mask_threshold = maskParams.maskThreshold;
-	Vec4f params = maskParams.params;
-	Size src_img_shape = maskParams.srcImgShape;
+	cv::Vec4f params = maskParams.params;
+	cv::Size src_img_shape = maskParams.srcImgShape;
 
-	Mat protos = maskProtos.reshape(0, { seg_channels,seg_width * seg_height });
+	cv::Mat protos = maskProtos.reshape(0, { seg_channels,seg_width * seg_height });
 
-	Mat matmul_res = (maskProposals * protos).t();
-	Mat masks = matmul_res.reshape(output.size(), { seg_width,seg_height });
-	vector<Mat> maskChannels;
+	cv::Mat matmul_res = (maskProposals * protos).t();
+	cv::Mat masks = matmul_res.reshape(output.size(), { seg_width,seg_height });
+	std::vector<cv::Mat> maskChannels;
 	split(masks, maskChannels);
 	for (int i = 0; i < output.size(); ++i) {
-		Mat dest, mask;
+		cv::Mat dest, mask;
 		//sigmoid
 		cv::exp(-maskChannels[i], dest);
 		dest = 1.0 / (1.0 + dest);
 
-		Rect roi(int(params[2] / net_width * seg_width), int(params[3] / net_height * seg_height), int(seg_width - params[2] / 2), int(seg_height - params[3] / 2));
+		cv::Rect roi(int(params[2] / net_width * seg_width), int(params[3] / net_height * seg_height), int(seg_width - params[2] / 2), int(seg_height - params[3] / 2));
 		dest = dest(roi);
-		resize(dest, mask, src_img_shape, INTER_NEAREST);
+		resize(dest, mask, src_img_shape, cv::INTER_NEAREST);
 
 		//crop
-		Rect temp_rect = output[i].box;
+		cv::Rect temp_rect = output[i].box;
 		mask = mask(temp_rect) > mask_threshold;
 		output[i].boxMask = mask;
 	}
 }
 
-void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputParams& output, const MaskParams& maskParams) {
+void GetMask2(const cv::Mat& maskProposals, const cv::Mat& maskProtos, OutputParams& output, const MaskParams& maskParams) {
 	int net_width = maskParams.netWidth;
 	int net_height = maskParams.netHeight;
 	int seg_channels = maskProtos.size[1];
 	int seg_height = maskProtos.size[2];
 	int seg_width = maskProtos.size[3];
 	float mask_threshold = maskParams.maskThreshold;
-	Vec4f params = maskParams.params;
-	Size src_img_shape = maskParams.srcImgShape;
+	cv::Vec4f params = maskParams.params;
+	cv::Size src_img_shape = maskParams.srcImgShape;
 
-	Rect temp_rect = output.box;
+	cv::Rect temp_rect = output.box;
 	//crop from mask_protos
 	int rang_x = floor((temp_rect.x * params[0] + params[2]) / net_width * seg_width);
 	int rang_y = floor((temp_rect.y * params[1] + params[3]) / net_height * seg_height);
@@ -149,18 +149,18 @@ void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputParams& out
 			rang_y -= 1;
 	}
 
-	vector<Range> roi_rangs;
-	roi_rangs.push_back(Range(0, 1));
-	roi_rangs.push_back(Range::all());
-	roi_rangs.push_back(Range(rang_y, rang_h + rang_y));
-	roi_rangs.push_back(Range(rang_x, rang_w + rang_x));
+	std::vector<cv::Range> roi_rangs;
+	roi_rangs.push_back(cv::Range(0, 1));
+	roi_rangs.push_back(cv::Range::all());
+	roi_rangs.push_back(cv::Range(rang_y, rang_h + rang_y));
+	roi_rangs.push_back(cv::Range(rang_x, rang_w + rang_x));
 
 	//crop
-	Mat temp_mask_protos = maskProtos(roi_rangs).clone();
-	Mat protos = temp_mask_protos.reshape(0, { seg_channels,rang_w * rang_h });
-	Mat matmul_res = (maskProposals * protos).t();
-	Mat masks_feature = matmul_res.reshape(1, { rang_h,rang_w });
-	Mat dest, mask;
+	cv::Mat temp_mask_protos = maskProtos(roi_rangs).clone();
+	cv::Mat protos = temp_mask_protos.reshape(0, { seg_channels,rang_w * rang_h });
+	cv::Mat matmul_res = (maskProposals * protos).t();
+	cv::Mat masks_feature = matmul_res.reshape(1, { rang_h,rang_w });
+	cv::Mat dest, mask;
 
 	//sigmoid
 	cv::exp(-masks_feature, dest);
@@ -171,32 +171,32 @@ void GetMask2(const Mat& maskProposals, const Mat& maskProtos, OutputParams& out
 	int width = ceil(net_width / seg_width * rang_w / params[0]);
 	int height = ceil(net_height / seg_height * rang_h / params[1]);
 
-	resize(dest, mask, Size(width, height), INTER_NEAREST);
-	Rect mask_rect = temp_rect - Point(left, top);
-	mask_rect &= Rect(0, 0, width, height);
+	resize(dest, mask, cv::Size(width, height), cv::INTER_NEAREST);
+	cv::Rect mask_rect = temp_rect - cv::Point(left, top);
+	mask_rect &= cv::Rect(0, 0, width, height);
 	mask = mask(mask_rect) > mask_threshold;
 	if (mask.rows != temp_rect.height || mask.cols != temp_rect.width) { //https://github.com/UNeedCryDear/yolov8-opencv-onnxruntime-cpp/pull/30
-		resize(mask, mask, temp_rect.size(), INTER_NEAREST);
+		resize(mask, mask, temp_rect.size(), cv::INTER_NEAREST);
 	}
 	output.boxMask = mask;
 
 }
-int BBox2Obb(float centerX, float centerY, float boxW, float boxH, float angle, RotatedRect& rotatedRect) {
-	rotatedRect = RotatedRect(Point2f(centerX, centerY), Size2f(boxW, boxH),angle);
+int BBox2Obb(float centerX, float centerY, float boxW, float boxH, float angle, cv::RotatedRect& rotatedRect) {
+	rotatedRect = cv::RotatedRect(cv::Point2f(centerX, centerY), cv::Size2f(boxW, boxH),angle);
 	return 0;
 }
 void DrawRotatedBox(cv::Mat &srcImg, cv::RotatedRect box, cv::Scalar color, int thinkness) {
-	Point2f p[4];
+	cv::Point2f p[4];
 	box.points(p);
 	for (int l = 0; l < 4; ++l) {
 		line(srcImg, p[l], p[(l + 1) % 4], color, thinkness, 8);
 	}
 }
 
-void DrawPred(Mat& img, vector<OutputParams> result, std::vector<std::string> classNames, vector<Scalar> color, bool isVideo) {
-	Mat mask = img.clone();
+void DrawPred(cv::Mat& img, std::vector<OutputParams> result, std::vector<std::string> classNames, std::vector<cv::Scalar> color, bool isVideo) {
+	cv::Mat mask = img.clone();
 	for (int i = 0; i < result.size(); i++) {
-		int left, top;
+		int left=0, top=0;
 
 		int color_num = i;
 		if (result[i].box.area() > 0) {
@@ -211,17 +211,64 @@ void DrawPred(Mat& img, vector<OutputParams> result, std::vector<std::string> cl
 		}
 		if (result[i].boxMask.rows && result[i].boxMask.cols > 0)
 			mask(result[i].box).setTo(color[result[i].id], result[i].boxMask);
-		string label = classNames[result[i].id] + ":" + to_string(result[i].confidence);
+		std::string label = classNames[result[i].id] + ":" + std::to_string(result[i].confidence);
 		int baseLine;
-		Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-		top = max(top, labelSize.height);
-		//rectangle(frame, Point(left, top - int(1.5 * labelSize.height)), Point(left + int(1.5 * labelSize.width), top + baseLine), Scalar(0, 255, 0), FILLED);
-		putText(img, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
+		cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+		top = MAX(top, labelSize.height);
+		//rectangle(frame, cv::Point(left, top - int(1.5 * labelSize.height)), cv::Point(left + int(1.5 * labelSize.width), top + baseLine), cv::Scalar(0, 255, 0), FILLED);
+		putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 1, color[result[i].id], 2);
 	}
-	addWeighted(img, 0.5, mask, 0.5, 0, img); //add mask to src
-	imshow("1", img);
+	cv::addWeighted(img, 0.5, mask, 0.5, 0, img); //add mask to src
+	cv::imshow("1", img);
 	if (!isVideo)
-		waitKey();
+		cv::waitKey();
+	//destroyAllWindows();
+
+}
+
+
+void DrawPredPose(cv::Mat& img, std::vector<OutputParams> result, PoseParams& poseParams, bool isVideo) {
+	for (int i = 0; i < result.size(); i++) {
+		int left, top;
+		int color_num = i;
+		if (result[i].box.area() > 0) {
+			rectangle(img, result[i].box, poseParams.personColor, 2, 8);
+			left = result[i].box.x;
+			top = result[i].box.y;
+		}
+		else 
+			continue;
+		
+		std::string label =  "person:" + std::to_string(result[i].confidence);
+		int baseLine;
+		cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+		top = MAX(top, labelSize.height);
+		//rectangle(frame, cv::Point(left, top - int(1.5 * labelSize.height)), cv::Point(left + int(1.5 * labelSize.width), top + baseLine), cv::Scalar(0, 255, 0), FILLED);
+		putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 1, poseParams.personColor, 2);
+		if (result[i].keyPoints.size()!= poseParams.kptBodyNames.size())
+			continue;
+		for (int j = 0; j < result[i].keyPoints.size(); ++j) {
+			PoseKeyPoint kpt = result[i].keyPoints[j];
+			if (kpt.confidence < poseParams.kptThreshold)
+				continue;
+			cv::Scalar kptColor = poseParams.posePalette[poseParams.kptColor[j]];
+			cv::circle(img, cv::Point(kpt.x, kpt.y), poseParams.kptRadius, kptColor, -1, 8);
+
+		}
+		if (poseParams.isDrawKptLine) {
+			for (int j = 0; j < poseParams.skeleton.size(); ++j) {
+				PoseKeyPoint kpt0 = result[i].keyPoints[poseParams.skeleton[j][0]-1];
+				PoseKeyPoint kpt1 = result[i].keyPoints[poseParams.skeleton[j][1]-1];
+				if (kpt0.confidence < poseParams.kptThreshold || kpt1.confidence < poseParams.kptThreshold)
+					continue;
+				cv::Scalar kptColor= poseParams.posePalette[poseParams.limbColor[j]];
+				cv::line(img, cv::Point(kpt0.x, kpt0.y),cv::Point(kpt1.x, kpt1.y),  kptColor, 2, 8);
+			}
+		}
+	}
+	cv::imshow("1", img);
+	if (!isVideo)
+		cv::waitKey();
 	//destroyAllWindows();
 
 }
