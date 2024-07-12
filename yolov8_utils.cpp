@@ -1,10 +1,13 @@
+// #pragma once
 #include "yolov8_utils.h"
-#include <cstdio>
-#include <string>
-#include <sys/stat.h>
-#include <unistd.h>
 // using namespace cv;
 // using namespace std;
+
+inline bool exists_test(const std::string &name) {
+  struct stat buffer;
+  return (stat(name.c_str(), &buffer) == 0);
+}
+
 bool CheckParams(int netHeight, int netWidth, const int *netStride,
                  int strideSize) {
   if (netHeight % netStride[strideSize - 1] != 0 ||
@@ -17,8 +20,7 @@ bool CheckParams(int netHeight, int netWidth, const int *netStride,
   return true;
 }
 bool CheckModelPath(std::string modelPath) {
-  printf("start to check path");
-  if (access(modelPath.c_str(), F_OK) == -1) {
+  if (!exists_test(modelPath)) {
     std::cout << "Model path does not exist,  please check " << modelPath
               << std::endl;
     return false;

@@ -4,6 +4,10 @@ let
     cudaSupport = true;
     cudaPackages = pkgs.cudaPackages;
   });
+  opencv-gtk = (pkgs.opencv.override {
+    # 启用 GTK2，便于显示图像
+    enableGtk2 = true;
+  });
 in pkgs.stdenv.mkDerivation rec {
   pname = "yolov8-detect";
   version = "1.0";
@@ -17,17 +21,19 @@ in pkgs.stdenv.mkDerivation rec {
   nativeBuildInputs = with pkgs;
     [
       cmake
-      opencv4
       cudaPackages.cudnn
-      # cudaPackages.tensorrt
-    ] ++ [ onnxruntime-gpu ];
+    ] ++ [ onnxruntime-gpu opencv-gtk ];
 
   # 传给 CMake 的配置参数，控制 liboqs 的功能
   cmakeFlags =
-    [ "-DOpenCV_DIR=${pkgs.opencv4}" "-DONNXRUNTIME_DIR=${onnxruntime-gpu}" ];
+    [ 
+    "-DOpenCV_DIR=${pkgs.opencv4}"
+    "-DONNXRUNTIME_DIR=${onnxruntime-gpu}"
+    ];
 
-  # postInstall = ''
-  #   mkdir -p $out/bin
-  #   install -m755 bin/* "$out/bin"
-  #  '';
+  postInstall = ''
+    chmod +x $out/bin/YOLOv8
+    # mkdir -p $out/bin
+    # install -m755 YOLOv8 $out/bin
+   '';
 }

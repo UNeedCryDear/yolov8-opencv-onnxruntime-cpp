@@ -1,5 +1,6 @@
 #pragma once
 #include "yolov8_utils.h"
+#include <iostream>
 #include <opencv2/opencv.hpp>
 
 class Yolov8Obb {

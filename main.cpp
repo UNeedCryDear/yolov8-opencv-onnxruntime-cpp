@@ -5,7 +5,7 @@
 #include "yolov8.h"
 #include "yolov8_obb.h"
 #include "yolov8_obb_onnx.h"
-// #include "yolov8_onnx.h"
+#include "yolov8_onnx.h"
 #include "yolov8_pose.h"
 #include "yolov8_pose_onnx.h"
 #include "yolov8_seg.h"
@@ -60,7 +60,7 @@ int yolov8(_Tp &task, cv::Mat &img, std::string &model_path) {
 template <typename _Tp>
 int yolov8_onnx(_Tp &task, cv::Mat &img, std::string &model_path) {
 
-  if (task.ReadModel(model_path, false)) {
+  if (task.ReadModel(model_path, true, 0, true)) {
     std::cout << "read net ok!" << std::endl;
   } else {
     return -1;
@@ -220,11 +220,11 @@ int main() {
   img = src.clone();
   yolov8_onnx(task_obb_ort, img, model_path_obb); // yolov8 onnxruntime obb
 
-  //   img = src.clone();
-  //   yolov8(task_pose_ocv, img, model_path_pose); // yolov8 opencv pose
-  //   img = src.clone();
-  //   yolov8_onnx(task_pose_ort, img, model_path_pose); // yolov8 onnxruntime
-  //   pose
+  // img = src.clone();
+  // yolov8(task_pose_ocv, img, model_path_pose); //yolov8 opencv pose
+  // img = src.clone();
+  // yolov8_onnx(task_pose_ort, img, model_path_pose); // yolov8 onnxruntime
+  // pose
 
 #ifdef VIDEO_OPENCV
   video_demo(task_detect_ocv, model_path_detect);

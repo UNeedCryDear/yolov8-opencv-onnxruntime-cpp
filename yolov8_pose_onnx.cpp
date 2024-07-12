@@ -92,7 +92,7 @@ bool Yolov8PoseOnnx::ReadModel(const std::string &modelPath, bool isCuda,
     _outputTensorShape = tensor_info_output0.GetShape();
 
     //_outputMaskNodeDataType = tensor_info_output1.GetElementType(); //the same
-    // as output0 _outputMaskTensorShape = tensor_info_output1.GetShape(); if
+    //as output0 _outputMaskTensorShape = tensor_info_output1.GetShape(); if
     // (_outputTensorShape[0] == -1)
     //{
     //	_outputTensorShape[0] = _batchSize;
@@ -221,10 +221,10 @@ bool Yolov8PoseOnnx::OnnxBatchDetect(
     all_data += one_output_length;
     float *pdata = (float *)output0.data;
     int rows = output0.rows;
-    std::vector<int> class_ids; // ï¿½ï¿½ï¿½idï¿½ï¿½ï¿½ï¿½
-    std::vector<float> confidences; // ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½idï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½
-    std::vector<cv::Rect> boxes; // Ã¿ï¿½ï¿½idï¿½ï¿½ï¿½Î¿ï¿½
-    std::vector<std::vector<PoseKeyPoint>> pose_key_points; // ï¿½ï¿½ï¿½ï¿½kpt
+    std::vector<int> class_ids;     // ½á¹ûidÊý×é
+    std::vector<float> confidences; // ½á¹ûÃ¿¸öid¶ÔÓ¦ÖÃÐÅ¶ÈÊý×é
+    std::vector<cv::Rect> boxes;    // Ã¿¸öid¾ØÐÎ¿ò
+    std::vector<std::vector<PoseKeyPoint>> pose_key_points; // ±£´ækpt
 
     for (int r = 0; r < rows; ++r) {
       float max_class_socre = pdata[4];
@@ -251,7 +251,7 @@ bool Yolov8PoseOnnx::OnnxBatchDetect(
         }
         pose_key_points.push_back(temp_kpts);
       }
-      pdata += net_width; // ï¿½ï¿½Ò»ï¿½ï¿½
+      pdata += net_width; // ÏÂÒ»ÐÐ
     }
 
     std::vector<int> nms_result;

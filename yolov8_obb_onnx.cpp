@@ -12,6 +12,12 @@ bool Yolov8ObbOnnx::ReadModel(const std::string &modelPath, bool isCuda,
     if (!CheckModelPath(modelPath))
       return false;
     std::vector<std::string> available_providers = GetAvailableProviders();
+    // std::cout << "AvailableProviders: [\n";
+    // for (auto &t : available_providers) {
+    //   std::cout << '\t' << t << '\n';
+    // }
+    // std::cout << "]\n";
+
     auto cuda_available =
         std::find(available_providers.begin(), available_providers.end(),
                   "CUDAExecutionProvider");
@@ -31,6 +37,8 @@ bool Yolov8ObbOnnx::ReadModel(const std::string &modelPath, bool isCuda,
       OrtStatus *status = OrtSessionOptionsAppendExecutionProvider_CUDA(
           _OrtSessionOptions, cudaID);
 #endif
+      std::cout << "ORTSESSION " << status << '\n';
+
     } else {
       std::cout << "************* Infer model on CPU! *************"
                 << std::endl;
@@ -48,6 +56,7 @@ bool Yolov8ObbOnnx::ReadModel(const std::string &modelPath, bool isCuda,
     _OrtSession =
         new Ort::Session(_OrtEnv, modelPath.c_str(), _OrtSessionOptions);
 #endif
+    std::cout << "ORTSESSION " << _OrtSession << '\n';
 
     Ort::AllocatorWithDefaultOptions allocator;
     // init input

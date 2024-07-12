@@ -1,8 +1,13 @@
 #pragma once
-#include <opencv2/core/types.hpp>
+#include <fstream>
+#include <iostream>
+#include <numeric>
 #include <opencv2/opencv.hpp>
+#include <string>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#define ORT_OLD_VISON 11 // ort1.12.0 ????��???��API
+#define ORT_OLD_VISON 13 // ort1.12.0 ֮ǰ�İ汾Ϊ�ɰ汾API
 
 struct PoseKeyPoint {
   float x = 0;
@@ -11,11 +16,11 @@ struct PoseKeyPoint {
 };
 
 struct OutputParams {
-  int id;                              // ??????id
-  float confidence;                    // ????????
-  cv::Rect box;                        // ???��?
-  cv::RotatedRect rotatedBox;          // obb??????��?
-  cv::Mat boxMask;                     // ???��???mask????????????????
+  int id;                     // ������id
+  float confidence;           // ������Ŷ�
+  cv::Rect box;               // ���ο�
+  cv::RotatedRect rotatedBox; // obb������ο�
+  cv::Mat boxMask; // ���ο���mask����ʡ�ڴ�ռ�ͼӿ��ٶ�
   std::vector<PoseKeyPoint> keyPoints; // pose key points
 };
 struct MaskParams {

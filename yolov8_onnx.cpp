@@ -2,7 +2,6 @@
 // using namespace std;
 // using namespace cv;
 // using namespace cv::dnn;
-#include <onnxruntime/onnxruntime_c_api.h>
 using namespace Ort;
 
 bool Yolov8Onnx::ReadModel(const std::string &modelPath, bool isCuda,
@@ -93,7 +92,7 @@ bool Yolov8Onnx::ReadModel(const std::string &modelPath, bool isCuda,
     _outputTensorShape = tensor_info_output0.GetShape();
 
     //_outputMaskNodeDataType = tensor_info_output1.GetElementType(); //the same
-    // as output0 _outputMaskTensorShape = tensor_info_output1.GetShape(); if
+    //as output0 _outputMaskTensorShape = tensor_info_output1.GetShape(); if
     // (_outputTensorShape[0] == -1)
     //{
     //	_outputTensorShape[0] = _batchSize;
@@ -215,9 +214,9 @@ bool Yolov8Onnx::OnnxBatchDetect(
     all_data += one_output_length;
     float *pdata = (float *)output0.data;
     int rows = output0.rows;
-    std::vector<int> class_ids; // ï¿½ï¿½ï¿½idï¿½ï¿½ï¿½ï¿½
-    std::vector<float> confidences; // ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½idï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½
-    std::vector<cv::Rect> boxes;     // Ã¿ï¿½ï¿½idï¿½ï¿½ï¿½Î¿ï¿½
+    std::vector<int> class_ids;      // ½á¹ûidÊý×é
+    std::vector<float> confidences;  // ½á¹ûÃ¿¸öid¶ÔÓ¦ÖÃÐÅ¶ÈÊý×é
+    std::vector<cv::Rect> boxes;     // Ã¿¸öid¾ØÐÎ¿ò
     for (int r = 0; r < rows; ++r) { // stride
       cv::Mat scores(1, socre_array_length, CV_32F, pdata + 4);
       cv::Point classIdPoint;
@@ -237,7 +236,7 @@ bool Yolov8Onnx::OnnxBatchDetect(
         confidences.push_back(max_class_socre);
         boxes.push_back(cv::Rect(left, top, int(w + 0.5), int(h + 0.5)));
       }
-      pdata += net_width; // ï¿½ï¿½Ò»ï¿½ï¿½
+      pdata += net_width; // ÏÂÒ»ÐÐ
     }
 
     std::vector<int> nms_result;

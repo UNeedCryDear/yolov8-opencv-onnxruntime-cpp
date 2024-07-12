@@ -1,7 +1,7 @@
 #pragma once
 #include "yolov8_utils.h"
+#include <iostream>
 #include <memory>
-#include <numeric>
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #include <opencv2/opencv.hpp>
 

@@ -2,3 +2,4 @@
 .cache
 .vscode
 result
+models/*
