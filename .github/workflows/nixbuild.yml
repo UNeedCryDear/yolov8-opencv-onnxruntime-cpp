@@ -10,6 +10,8 @@ jobs:
     permissions:
       id-token: "write"
       contents: "read"
+    env:
+      NIXPKGS_ALLOW_UNFREE: 1
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
