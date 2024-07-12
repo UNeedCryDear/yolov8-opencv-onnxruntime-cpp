@@ -15,5 +15,5 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - uses: DeterminateSystems/flake-checker-action@main
-      - name: Run `nix build`
-        run: nix build .
+      - name: Run `nix-build`
+        run: nix-build
