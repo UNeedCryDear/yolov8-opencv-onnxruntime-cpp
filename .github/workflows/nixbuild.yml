@@ -1,0 +1,12 @@
+name: nixbuild
+on: push
+jobs:
+  minimal:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nixbuild/nix-quick-install-action@v24
+      - uses: nixbuild/nixbuild-action@v19
+        with:
+          nixbuild_token: ${{ secrets.nixbuild_token }}
+      - run: nix-build
