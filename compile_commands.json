@@ -1,0 +1,56 @@
+[
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_pose.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_pose.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_pose.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_pose.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_pose_onnx.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_pose_onnx.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_pose_onnx.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_pose_onnx.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/main.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/main.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/main.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/main.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_onnx.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_onnx.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_onnx.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_onnx.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_seg.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_seg.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_seg.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_seg.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_seg_onnx.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_seg_onnx.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_seg_onnx.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_seg_onnx.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_utils.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_utils.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_utils.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_utils.cpp.o"
+},
+{
+  "directory": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/build",
+  "command": "/usr/bin/clang++ -isystem /usr/include/opencv4 -g -o CMakeFiles/YOLOv8.dir/yolov8_obb_onnx.cpp.o -c /home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_obb_onnx.cpp",
+  "file": "/home/sgct/Project/yolov8-opencv-onnxruntime-cpp/yolov8_obb_onnx.cpp",
+  "output": "CMakeFiles/YOLOv8.dir/yolov8_obb_onnx.cpp.o"
+}
+]
