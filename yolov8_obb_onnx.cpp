@@ -249,6 +249,8 @@ bool Yolov8ObbOnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<s
 			result.id = class_ids[idx];
 			result.confidence = confidences[idx];
 			result.rotatedBox = boxes[idx];
+			if (result.rotatedBox.size.width < 1 || result.rotatedBox.size.height < 1)
+				continue;
 			temp_output.push_back(result);
 		}
 		output.push_back(temp_output);

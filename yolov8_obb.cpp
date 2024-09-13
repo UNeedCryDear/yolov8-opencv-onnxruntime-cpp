@@ -99,6 +99,8 @@ bool Yolov8Obb::Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputPar
 		result.id = class_ids[idx];
 		result.confidence = confidences[idx];
 		result.rotatedBox = boxes[idx];
+		if (result.rotatedBox.size.width<1|| result.rotatedBox.size.height<1)
+			continue;
 		output.push_back(result);
 	}
 	if (output.size())

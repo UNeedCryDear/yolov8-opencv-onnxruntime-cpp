@@ -96,6 +96,8 @@ bool Yolov8::Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputParams
 		result.id = class_ids[idx];
 		result.confidence = confidences[idx];
 		result.box = boxes[idx] & holeImgRect;
+		if (result.box.area() < 1)
+			continue;
 		output.push_back(result);
 	}
 	if (output.size())

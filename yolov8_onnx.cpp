@@ -246,6 +246,8 @@ bool Yolov8Onnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 			result.id = class_ids[idx];
 			result.confidence = confidences[idx];
 			result.box = boxes[idx] & holeImgRect;
+			if (result.box.area() < 1)
+				continue;
 			temp_output.push_back(result);
 		}
 		output.push_back(temp_output);

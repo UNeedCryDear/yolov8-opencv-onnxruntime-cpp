@@ -109,6 +109,8 @@ bool Yolov8Pose::Detect(cv::Mat& srcImg, cv::dnn::Net& net, std::vector<OutputPa
 		result.confidence = confidences[idx];
 		result.box = boxes[idx]& holeImgRect;
 		result.keyPoints = pose_key_points[idx];
+		if (result.box.area() < 1)
+			continue;
 		output.push_back(result);
 	}
 	if (output.size())

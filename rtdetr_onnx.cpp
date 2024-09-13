@@ -236,6 +236,8 @@ bool RTDETROnnx::OnnxBatchDetect(std::vector<cv::Mat>& srcImgs, std::vector<std:
 				result.id = classIdPoint.x;
 				result.confidence = max_class_socre;
 				result.box = box & holeImgRect;
+				if (result.box.area() < 1)
+					continue;
 				temp_output.push_back(result);
 			}
 			pdata += net_width;//ÏÂÒ»ÐÐ

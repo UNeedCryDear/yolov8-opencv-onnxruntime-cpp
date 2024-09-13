@@ -182,10 +182,10 @@ void GetMask2(const cv::Mat& maskProposals, const cv::Mat& maskProtos, OutputPar
 
 }
 int BBox2Obb(float centerX, float centerY, float boxW, float boxH, float angle, cv::RotatedRect& rotatedRect) {
-	rotatedRect = cv::RotatedRect(cv::Point2f(centerX, centerY), cv::Size2f(boxW, boxH),angle);
+	rotatedRect = cv::RotatedRect(cv::Point2f(centerX, centerY), cv::Size2f(boxW, boxH), angle);
 	return 0;
 }
-void DrawRotatedBox(cv::Mat &srcImg, cv::RotatedRect box, cv::Scalar color, int thinkness) {
+void DrawRotatedBox(cv::Mat& srcImg, cv::RotatedRect box, cv::Scalar color, int thinkness) {
 	cv::Point2f p[4];
 	box.points(p);
 	for (int l = 0; l < 4; ++l) {
@@ -196,7 +196,7 @@ void DrawRotatedBox(cv::Mat &srcImg, cv::RotatedRect box, cv::Scalar color, int 
 void DrawPred(cv::Mat& img, std::vector<OutputParams> result, std::vector<std::string> classNames, std::vector<cv::Scalar> color, bool isVideo) {
 	cv::Mat mask = img.clone();
 	for (int i = 0; i < result.size(); i++) {
-		int left=0, top=0;
+		int left = 0, top = 0;
 
 		int color_num = i;
 		if (result[i].box.area() > 0) {
@@ -236,16 +236,16 @@ void DrawPredPose(cv::Mat& img, std::vector<OutputParams> result, PoseParams& po
 			left = result[i].box.x;
 			top = result[i].box.y;
 		}
-		else 
+		else
 			continue;
-		
-		std::string label =  "person:" + std::to_string(result[i].confidence);
+
+		std::string label = "person:" + std::to_string(result[i].confidence);
 		int baseLine;
 		cv::Size labelSize = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
 		top = MAX(top, labelSize.height);
 		//rectangle(frame, cv::Point(left, top - int(1.5 * labelSize.height)), cv::Point(left + int(1.5 * labelSize.width), top + baseLine), cv::Scalar(0, 255, 0), FILLED);
 		putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 1, poseParams.personColor, 2);
-		if (result[i].keyPoints.size()!= poseParams.kptBodyNames.size())
+		if (result[i].keyPoints.size() != poseParams.kptBodyNames.size())
 			continue;
 		for (int j = 0; j < result[i].keyPoints.size(); ++j) {
 			PoseKeyPoint kpt = result[i].keyPoints[j];
@@ -256,12 +256,12 @@ void DrawPredPose(cv::Mat& img, std::vector<OutputParams> result, PoseParams& po
 		}
 		if (poseParams.isDrawKptLine) {
 			for (int j = 0; j < poseParams.skeleton.size(); ++j) {
-				PoseKeyPoint kpt0 = result[i].keyPoints[poseParams.skeleton[j][0]-1];
-				PoseKeyPoint kpt1 = result[i].keyPoints[poseParams.skeleton[j][1]-1];
+				PoseKeyPoint kpt0 = result[i].keyPoints[poseParams.skeleton[j][0] - 1];
+				PoseKeyPoint kpt1 = result[i].keyPoints[poseParams.skeleton[j][1] - 1];
 				if (kpt0.confidence < poseParams.kptThreshold || kpt1.confidence < poseParams.kptThreshold)
 					continue;
-				cv::Scalar kptColor= poseParams.posePalette[poseParams.limbColor[j]];
-				cv::line(img, cv::Point(kpt0.x, kpt0.y),cv::Point(kpt1.x, kpt1.y),  kptColor, 2, 8);
+				cv::Scalar kptColor = poseParams.posePalette[poseParams.limbColor[j]];
+				cv::line(img, cv::Point(kpt0.x, kpt0.y), cv::Point(kpt1.x, kpt1.y), kptColor, 2, 8);
 			}
 		}
 	}
